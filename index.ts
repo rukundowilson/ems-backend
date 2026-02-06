@@ -1,27 +1,39 @@
-// src/index.ts
+import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
-
-dotenv.config(); // Load environment variables from .env file
+import { connectMongo } from "./src/data/mongoConfig.js";
+import availabilityRoutes from "./src/routes/availability.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 6000;
 
 // Middleware
+app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.get("/", (req, res) => {
-  res.send("EMS Backend is running!");
+app.use("/api/availability", availabilityRoutes);
+
+// Health check
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
 });
 
-// Example API route
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date() });
-});
+async function startServer() {
+  try {
+    await connectMongo();
+    console.log("✅ Mongo connected");
 
-// Start servernpm 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Startup failed:", err);
+    process.exit(1);
+  }
+}
+
+startServer();
+
