@@ -1,0 +1,67 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import * as PatientModel from '../models/Patient.js';
+export async function signup(req, res) {
+    try {
+        const { name, email, password, phone, role } = req.body;
+        if (!email || !password)
+            return res.status(400).json({ success: false, error: 'email and password required' });
+        // prevent duplicate
+        const existing = await PatientModel.getPatientByEmail(email);
+        if (existing)
+            return res.status(409).json({ success: false, error: 'Email already registered' });
+        const hash = await bcrypt.hash(password, 10);
+        // Default role to 'patient' if not provided
+        const userRole = role || 'patient';
+        const created = await PatientModel.createPatient({ email, name, phone, passwordHash: hash, role: userRole });
+        const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
+        const token = jwt.sign({ sub: created._id?.toString(), email: created.email, role: created.role }, secret, { expiresIn: '7d' });
+        return res.status(201).json({ success: true, data: created, token });
+    }
+    catch (err) {
+        console.error('Auth signup error', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+}
+export async function login(req, res) {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password)
+            return res.status(400).json({ success: false, error: 'email and password required' });
+        const patient = await PatientModel.getPatientByEmail(email);
+        if (!patient || !patient.passwordHash)
+            return res.status(401).json({ success: false, error: 'Invalid credentials' });
+        const ok = await bcrypt.compare(password, patient.passwordHash);
+        if (!ok)
+            return res.status(401).json({ success: false, error: 'Invalid credentials' });
+        const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
+        const token = jwt.sign({ sub: patient._id?.toString(), email: patient.email, role: patient.role }, secret, { expiresIn: '7d' });
+        return res.json({ success: true, data: patient, token });
+    }
+    catch (err) {
+        console.error('Auth login error', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+}
+export async function me(req, res) {
+    try {
+        const authHeader = typeof req.headers.authorization === 'string' ? req.headers.authorization : '';
+        const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+        if (!token)
+            return res.status(401).json({ success: false, error: 'Authorization required' });
+        const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
+        const decoded = jwt.verify(token, secret);
+        const sub = decoded && decoded.sub;
+        if (!sub)
+            return res.status(401).json({ success: false, error: 'Invalid token' });
+        const patient = await PatientModel.getPatientById(sub);
+        if (!patient)
+            return res.status(404).json({ success: false, error: 'Patient not found' });
+        return res.json({ success: true, data: patient });
+    }
+    catch (err) {
+        console.error('Auth me error', err);
+        return res.status(401).json({ success: false, error: 'Invalid token' });
+    }
+}
+//# sourceMappingURL=authController.js.map

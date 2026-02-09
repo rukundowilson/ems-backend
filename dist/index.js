@@ -4,14 +4,18 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { connectMongo } from "./src/data/mongoConfig.js";
 import availabilityRoutes from "./src/routes/availability.js";
+import authRoutes from "./src/routes/auth.js";
+import serviceRoutes from "./src/routes/services.js";
 const app = express();
-const PORT = 6000;
+const PORT = 4000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // Routes
 app.use("/api/availability", availabilityRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/services", serviceRoutes);
 // Health check
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });

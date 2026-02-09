@@ -7,7 +7,7 @@ const router = Router();
 // GET /api/availability - Get all availability slots for current doctor
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req.query.doctorId as string) || 'doctor-1'; // TODO: use auth context
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
     const slots = await AvailabilityModel.getDoctorAvailability(doctorId);
     res.json({ success: true, data: slots });
   } catch (err) {
@@ -18,7 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
 // GET /api/availability/:date - Get availability for specific date
 router.get('/:date', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req.query.doctorId as string) || 'doctor-1'; // TODO: use auth context
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
     const date = req.params.date || '';
     if (!date) return res.status(400).json({ success: false, error: 'date required' });
     const slots = await AvailabilityModel.getAvailabilityByDate(doctorId, date);
@@ -31,7 +31,7 @@ router.get('/:date', async (req: Request, res: Response) => {
 // POST /api/availability - Create single or multiple availability slots
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req.query.doctorId as string) || 'doctor-1'; // TODO: use auth context
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
     const { date, slots } = req.body as { date: string; slots: { start: string; end: string }[] };
 
     if (!date || !slots || !Array.isArray(slots) || slots.length === 0) {
@@ -101,7 +101,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // DELETE /api/availability - Delete all slots for a date
 router.delete('/', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req.query.doctorId as string) || 'doctor-1'; // TODO: use auth context
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
     const { date } = req.body as { date: string };
     
     if (!date) {
