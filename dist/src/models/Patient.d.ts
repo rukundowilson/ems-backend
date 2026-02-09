@@ -1,0 +1,35 @@
+import { ObjectId } from 'mongodb';
+export interface Patient {
+    _id?: ObjectId;
+    email?: string | undefined;
+    name?: string | undefined;
+    phone?: string | undefined;
+    firebaseUid?: string | undefined;
+    passwordHash?: string | undefined;
+    role?: 'patient' | 'doctor' | 'admin';
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+export declare function getPatientsCollection(): Promise<import("mongodb").Collection<Patient>>;
+export declare function createPatient(payload: {
+    firebaseUid?: string | undefined;
+    email?: string | undefined;
+    name?: string | undefined;
+    phone?: string | undefined;
+    passwordHash?: string | undefined;
+    role?: 'patient' | 'doctor' | 'admin';
+}): Promise<{
+    _id: ObjectId;
+    email?: string | undefined;
+    name?: string | undefined;
+    phone?: string | undefined;
+    firebaseUid?: string | undefined;
+    passwordHash?: string | undefined;
+    role?: "patient" | "doctor" | "admin";
+    createdAt?: Date;
+    updatedAt?: Date;
+}>;
+export declare function getPatientByFirebaseUid(uid: string): Promise<import("mongodb").WithId<Patient> | null>;
+export declare function getPatientByEmail(email: string): Promise<import("mongodb").WithId<Patient> | null>;
+export declare function getPatientById(id: string): Promise<import("mongodb").WithId<Patient> | null>;
+//# sourceMappingURL=Patient.d.ts.map
