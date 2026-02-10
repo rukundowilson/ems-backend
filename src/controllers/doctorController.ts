@@ -2,41 +2,34 @@ import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as PatientModel from '../models/Patient.js';
+import * as DoctorModel from '../models/Doctor.js';
 
 const ADMIN_KEY = process.env.ADMIN_KEY || 'admin-secret-key-change-in-production';
 
 export async function createDoctor(req: Request, res: Response) {
   try {
-    const { adminKey, email, name, phone, password } = req.body as {
+    const { adminKey, email, name, phone, password, specialization, experience, qualification } = req.body as {
       adminKey?: string;
       email?: string;
       name?: string;
       phone?: string;
       password?: string;
+      specialization?: string;
+      experience?: number;
+      qualification?: string;
     };
 
-    // Validate admin key
     if (!adminKey || adminKey !== ADMIN_KEY) {
-      return res
-        .status(403)
-        .json({ success: false, error: 'Invalid admin key' });
+      return res.status(403).json({ success: false, error: 'Invalid admin key' });
     }
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: 'email and password required',
-        });
+      return res.status(400).json({ success: false, error: 'email and password required' });
     }
 
-    // Check if doctor already exists
     const existing = await PatientModel.getPatientByEmail(email);
     if (existing) {
-      return res
-        .status(409)
-        .json({ success: false, error: 'Doctor email already exists' });
+      return res.status(409).json({ success: false, error: 'Doctor email already exists' });
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -58,8 +51,69 @@ export async function createDoctor(req: Request, res: Response) {
     return res.status(201).json({ success: true, data: created, token });
   } catch (err) {
     console.error('Doctor creation error', err);
-    return res
-      .status(500)
-      .json({ success: false, error: (err as Error).message });
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function getAllDoctors(req: Request, res: Response) {
+  try {
+    const doctors = await DoctorModel.getAllDoctors();
+    const sanitized = doctors.map(d => ({ ...d, passwordHash: undefined }));
+    return res.json({ success: true, data: sanitized });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function getDoctorById(req: Request, res: Response) {
+  try {
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ success: false, error: 'ID required' });
+
+    const doctor = await DoctorModel.getDoctorById(id);
+    if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
+
+    const { passwordHash, ...sanitized } = doctor;
+    return res.json({ success: true, data: sanitized });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function updateDoctor(req: Request, res: Response) {
+  try {
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ success: false, error: 'ID required' });
+
+    const { name, phone, email, specialization, experience, qualification } = req.body;
+    const updates: any = {};
+    if (name !== undefined) updates.name = name;
+    if (phone !== undefined) updates.phone = phone;
+    if (email !== undefined) updates.email = email;
+    if (specialization !== undefined) updates.specialization = specialization;
+    if (experience !== undefined) updates.experience = experience;
+    if (qualification !== undefined) updates.qualification = qualification;
+
+    const updated = await DoctorModel.updateDoctor(id, updates);
+    if (!updated) return res.status(404).json({ success: false, error: 'Doctor not found' });
+
+    const { passwordHash, ...sanitized } = updated;
+    return res.json({ success: true, data: sanitized });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function deleteDoctor(req: Request, res: Response) {
+  try {
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ success: false, error: 'ID required' });
+
+    const deleted = await DoctorModel.deleteDoctor(id);
+    if (!deleted) return res.status(404).json({ success: false, error: 'Doctor not found' });
+
+    return res.json({ success: true, message: 'Doctor deleted' });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
   }
 }

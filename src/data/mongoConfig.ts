@@ -3,7 +3,7 @@ import { MongoClient, Db } from 'mongodb';
 
 dotenv.config();
 
-const uri = process.env.MONGO_URI || 'mongodb://localhost:27017';
+const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/';
 const dbName = process.env.MONGO_DB || 'ems';
 
 let client: MongoClient | undefined;
@@ -13,10 +13,18 @@ export async function connectMongo(): Promise<Db> {
   if (!client) {
     client = new MongoClient(uri);
     await client.connect();
+    await client.db('admin').command({ ping: 1 });
     db = client.db(dbName);
   }
-  return db!;
+  if (!db) {
+    throw new Error('Failed to initialize database');
+  }
+  return db;
 }
+
+
+
+
 
 export function getDb(): Db {
   if (!db) {

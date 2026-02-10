@@ -59,8 +59,8 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/availability/:id - Update availability slot
-router.put('/:id', async (req: Request, res: Response) => {
+// PATCH /api/availability/:id - Update availability slot
+router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id || '';
     if (!id) return res.status(400).json({ success: false, error: 'id required' });
