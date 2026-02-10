@@ -8,7 +8,8 @@
     "dev": "nodemon --watch . --ext ts --exec 'node --import tsx/esm' index.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "create-doctor": "node --import tsx/esm scripts/create-doctor.ts"
+    "create-doctor": "node --import tsx/esm scripts/create-doctor.ts",
+    "delete-orphaned-slots": "node --import tsx/esm scripts/delete-orphaned-slots.ts"
   },
   "keywords": [],
   "author": "",

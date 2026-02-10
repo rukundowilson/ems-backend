@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
+import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, updateBooking, deleteBooking } from '../models/Booking.js';
 
 const router = Router();
 
@@ -26,23 +27,18 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Save booking to database
-    // For now, we'll just return a success response
-    const booking = {
-      _id: Math.random().toString(36).substr(2, 9),
+    const booking = await createBooking({
       doctorId,
-      patientId: patientId || null,
+      ...(patientId && { patientId }),
       service,
       date,
       time,
-      patientEmail: patientEmail || null,
-      patientName: patientName || null,
-      patientPhone: patientPhone || null,
-      paymentMethod: paymentMethod || null,
-      amount: amount || 0,
-      status: 'confirmed',
-      createdAt: new Date(),
-    };
+      ...(patientEmail && { patientEmail }),
+      ...(patientName && { patientName }),
+      ...(patientPhone && { patientPhone }),
+      ...(paymentMethod && { paymentMethod }),
+      ...(amount && { amount }),
+    });
 
     return res.status(201).json({
       success: true,
@@ -71,9 +67,12 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Fetch bookings from database
-    // For now, return empty array
-    const bookings: any[] = [];
+    let bookings;
+    if (patientId) {
+      bookings = await getBookingsByPatientId(patientId);
+    } else {
+      bookings = await getBookingsByDoctorId(doctorId);
+    }
 
     return res.json({
       success: true,
@@ -100,11 +99,18 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Fetch booking from database
-    // For now, return error
-    return res.status(404).json({
-      success: false,
-      error: 'Booking not found',
+    const booking = await getBookingById(id);
+    
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        error: 'Booking not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: booking,
     });
   } catch (err) {
     console.error('Fetch booking error:', err);
@@ -132,11 +138,24 @@ router.put('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Update booking in database
-    // For now, return error
-    return res.status(404).json({
-      success: false,
-      error: 'Booking not found',
+    const updateData: any = {};
+    if (date) updateData.date = date;
+    if (time) updateData.time = time;
+    if (status) updateData.status = status;
+
+    const booking = await updateBooking(id, updateData);
+    
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        error: 'Booking not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: booking,
+      message: 'Booking updated successfully',
     });
   } catch (err) {
     console.error('Update booking error:', err);
@@ -159,11 +178,18 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Delete booking from database
-    // For now, return error
-    return res.status(404).json({
-      success: false,
-      error: 'Booking not found',
+    const result = await deleteBooking(id);
+    
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: 'Booking not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Booking cancelled successfully',
     });
   } catch (err) {
     console.error('Delete booking error:', err);
