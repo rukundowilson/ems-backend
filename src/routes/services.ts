@@ -16,7 +16,7 @@ router.get('/id/:id', serviceController.getServiceById);
 router.get('/slug/:slug', serviceController.getServiceBySlug);
 
 // Update service
-router.put('/:id', serviceController.updateService);
+router.patch('/:id', serviceController.updateService);
 
 // Delete service
 router.delete('/:id', serviceController.deleteService);

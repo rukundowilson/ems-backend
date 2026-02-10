@@ -115,8 +115,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/bookings/:id - Update a booking
-router.put('/:id', async (req: Request, res: Response) => {
+// PATCH /api/bookings/:id - Update a booking
+router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id || '';
     const { date, time, status } = req.body as {
