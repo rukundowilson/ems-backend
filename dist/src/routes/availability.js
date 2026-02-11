@@ -4,7 +4,7 @@ const router = Router();
 // GET /api/availability - Get all availability slots for current doctor
 router.get('/', async (req, res) => {
     try {
-        const doctorId = req.firebase?.uid || req.query.doctorId || 'doctor-1';
+        const doctorId = req.firebase?.uid || req.query.doctorId || '69888d45f732efa099fdbfa6';
         const slots = await AvailabilityModel.getDoctorAvailability(doctorId);
         res.json({ success: true, data: slots });
     }
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 // GET /api/availability/:date - Get availability for specific date
 router.get('/:date', async (req, res) => {
     try {
-        const doctorId = req.firebase?.uid || req.query.doctorId || 'doctor-1';
+        const doctorId = req.firebase?.uid || req.query.doctorId || '69888d45f732efa099fdbfa6';
         const date = req.params.date || '';
         if (!date)
             return res.status(400).json({ success: false, error: 'date required' });
@@ -29,7 +29,7 @@ router.get('/:date', async (req, res) => {
 // POST /api/availability - Create single or multiple availability slots
 router.post('/', async (req, res) => {
     try {
-        const doctorId = req.firebase?.uid || req.query.doctorId || 'doctor-1';
+        const doctorId = req.firebase?.uid || req.query.doctorId || '69888d45f732efa099fdbfa6';
         const { date, slots } = req.body;
         if (!date || !slots || !Array.isArray(slots) || slots.length === 0) {
             return res.status(400).json({ success: false, error: 'date and slots array required' });
@@ -50,8 +50,8 @@ router.post('/', async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
-// PUT /api/availability/:id - Update availability slot
-router.put('/:id', async (req, res) => {
+// PATCH /api/availability/:id - Update availability slot
+router.patch('/:id', async (req, res) => {
     try {
         const id = req.params.id || '';
         if (!id)

@@ -1,18 +1,20 @@
 import { Router } from 'express';
-import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, updateBooking, deleteBooking } from '../models/Booking.js';
+import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, getAllBookings, updateBooking, deleteBooking } from '../models/Booking.js';
+import * as PatientModel from '../models/Patient.js';
 const router = Router();
 // POST /api/bookings - Create a new booking (no auth required)
 router.post('/', async (req, res) => {
     try {
         const { doctorId, patientId, service, date, time, patientEmail, patientName, patientPhone, paymentMethod, amount } = req.body;
-        if (!doctorId || !service || !date || !time) {
+        // DocotorId is optional - admin/doctor will assign later
+        if (!service || !date || !time) {
             return res.status(400).json({
                 success: false,
-                error: 'doctorId, service, date, and time are required',
+                error: 'service, date, and time are required',
             });
         }
         const booking = await createBooking({
-            doctorId,
+            ...(doctorId && { doctorId }),
             ...(patientId && { patientId }),
             service,
             date,
@@ -53,7 +55,19 @@ router.get('/', async (req, res) => {
             bookings = await getBookingsByPatientId(patientId);
         }
         else {
-            bookings = await getBookingsByDoctorId(doctorId);
+            // For doctor, fetch their assigned bookings + unassigned bookings for their services
+            const doctor = await PatientModel.getPatientById(doctorId);
+            // Get bookings assigned to this doctor
+            const assignedBookings = await getBookingsByDoctorId(doctorId);
+            let unassignedBookings = [];
+            // If doctor has services, also get unassigned bookings for those services
+            if (doctor && Array.isArray(doctor.services) && doctor.services.length > 0) {
+                const serviceSet = new Set(doctor.services);
+                const allBookings = await getAllBookings();
+                unassignedBookings = allBookings.filter((b) => !b.doctorId && serviceSet.has(b.service));
+            }
+            // Combine assigned and unassigned bookings
+            bookings = [...assignedBookings, ...unassignedBookings];
         }
         return res.json({
             success: true,
@@ -98,8 +112,8 @@ router.get('/:id', async (req, res) => {
         });
     }
 });
-// PUT /api/bookings/:id - Update a booking
-router.put('/:id', async (req, res) => {
+// PATCH /api/bookings/:id - Update a booking
+router.patch('/:id', async (req, res) => {
     try {
         const id = req.params.id || '';
         const { date, time, status } = req.body;

@@ -9,6 +9,7 @@ export interface Patient {
   firebaseUid?: string | undefined;
   passwordHash?: string | undefined;
   role?: 'patient' | 'doctor' | 'admin';
+  services?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -20,7 +21,7 @@ export async function getPatientsCollection() {
   return db.collection<Patient>(COLLECTION_NAME);
 }
 
-export async function createPatient(payload: { firebaseUid?: string | undefined; email?: string | undefined; name?: string | undefined; phone?: string | undefined; passwordHash?: string | undefined; role?: 'patient' | 'doctor' | 'admin' }) {
+export async function createPatient(payload: { firebaseUid?: string | undefined; email?: string | undefined; name?: string | undefined; phone?: string | undefined; passwordHash?: string | undefined; role?: 'patient' | 'doctor' | 'admin'; services?: string[] }) {
   const collection = await getPatientsCollection();
   const doc: Patient = {
     firebaseUid: payload.firebaseUid || undefined,
@@ -29,6 +30,7 @@ export async function createPatient(payload: { firebaseUid?: string | undefined;
     phone: payload.phone,
     passwordHash: payload.passwordHash || undefined,
     role: payload.role || 'patient',
+    services: (payload as any).services || undefined,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
