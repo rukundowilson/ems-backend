@@ -12,8 +12,17 @@ router.get('/', async (req: Request, res: Response) => {
 
     let slots;
     if (service) {
-      // Get availability for all doctors with this service
-      slots = await AvailabilityModel.getAvailabilityByService(service);
+      // Detect if service is an ID (24-char hex) or slug
+      // MongoDB ObjectIds are 24 hex characters
+      const isObjectId = /^[0-9a-f]{24}$/i.test(service);
+      
+      if (isObjectId) {
+        // Get availability for all doctors with this service ID
+        slots = await AvailabilityModel.getAvailabilityByServiceId(service);
+      } else {
+        // Get availability for all doctors with this service slug
+        slots = await AvailabilityModel.getAvailabilityByService(service);
+      }
     } else if (doctorId) {
       // Get availability for specific doctor
       slots = await AvailabilityModel.getDoctorAvailability(doctorId);

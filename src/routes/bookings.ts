@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, getAllBookings, updateBooking, deleteBooking } from '../models/Booking.js';
 import * as PatientModel from '../models/Patient.js';
+import * as ServiceModel from '../models/Service.js';
 import * as AvailabilityModel from '../models/Availability.js';
 
 const router = Router();
@@ -166,9 +167,31 @@ router.get('/', async (req: Request, res: Response) => {
       bookings = await getAllBookings();
     }
 
+    // Enhance bookings with full service details
+    const enhancedBookings = await Promise.all(
+      bookings.map(async (booking: any) => {
+        try {
+          // Try to fetch service details using service ID
+          const serviceDoc = await ServiceModel.getServiceById(booking.service);
+          return {
+            ...booking,
+            serviceDetails: serviceDoc ? {
+              _id: serviceDoc._id,
+              title: serviceDoc.title,
+              slug: serviceDoc.slug,
+              description: serviceDoc.description,
+            } : null,
+          };
+        } catch (err) {
+          // If service doesn't exist, keep booking as is
+          return booking;
+        }
+      })
+    );
+
     return res.json({
       success: true,
-      data: bookings,
+      data: enhancedBookings,
     });
   } catch (err) {
     console.error('Fetch bookings error:', err);
