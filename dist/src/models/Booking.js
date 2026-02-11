@@ -8,7 +8,6 @@ export async function getBookingsCollection() {
 export async function createBooking(payload) {
     const collection = await getBookingsCollection();
     const doc = {
-        doctorId: payload.doctorId,
         service: payload.service,
         date: payload.date,
         time: payload.time,
@@ -17,6 +16,8 @@ export async function createBooking(payload) {
         updatedAt: new Date(),
     };
     // Only add optional fields if they exist
+    if (payload.doctorId !== undefined)
+        doc.doctorId = payload.doctorId;
     if (payload.patientId !== undefined)
         doc.patientId = payload.patientId;
     if (payload.patientEmail !== undefined)
@@ -50,6 +51,10 @@ export async function getBookingsByPatientId(patientId) {
 export async function getBookingsByDoctorId(doctorId) {
     const collection = await getBookingsCollection();
     return collection.find({ doctorId }).toArray();
+}
+export async function getAllBookings() {
+    const collection = await getBookingsCollection();
+    return collection.find({}).toArray();
 }
 export async function updateBooking(id, payload) {
     const collection = await getBookingsCollection();

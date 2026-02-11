@@ -17,7 +17,7 @@ export interface Booking {
 }
 export declare function getBookingsCollection(): Promise<import("mongodb").Collection<Booking>>;
 export declare function createBooking(payload: {
-    doctorId: string;
+    doctorId?: string;
     patientId?: string;
     service: string;
     date: string;
@@ -31,6 +31,7 @@ export declare function createBooking(payload: {
 export declare function getBookingById(id: string): Promise<import("mongodb").WithId<Booking> | null>;
 export declare function getBookingsByPatientId(patientId: string): Promise<import("mongodb").WithId<Booking>[]>;
 export declare function getBookingsByDoctorId(doctorId: string): Promise<import("mongodb").WithId<Booking>[]>;
+export declare function getAllBookings(): Promise<import("mongodb").WithId<Booking>[]>;
 export declare function updateBooking(id: string, payload: Partial<Booking>): Promise<any>;
 export declare function deleteBooking(id: string): Promise<boolean>;
 //# sourceMappingURL=Booking.d.ts.map

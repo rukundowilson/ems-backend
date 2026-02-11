@@ -1,14 +1,17 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
-import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, updateBooking, deleteBooking } from '../models/Booking.js';
+import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, getAllBookings, updateBooking, deleteBooking } from '../models/Booking.js';
+import * as PatientModel from '../models/Patient.js';
+import * as AvailabilityModel from '../models/Availability.js';
 
 const router = Router();
 
 // POST /api/bookings - Create a new booking (no auth required)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { doctorId, patientId, service, date, time, patientEmail, patientName, patientPhone, paymentMethod, amount } = req.body as {
-      doctorId?: string;
+    let doctorId = (req.body as any).doctorId as string | undefined;
+    const { patientId, service, date, time, patientEmail, patientName, patientPhone, paymentMethod, amount } = req.body as {
+      // doctorId is handled separately above
       patientId?: string;
       service?: string;
       date?: string;
@@ -20,15 +23,85 @@ router.post('/', async (req: Request, res: Response) => {
       amount?: number;
     };
 
-    if (!doctorId || !service || !date || !time) {
+    // DocotorId is optional - admin/doctor will assign later
+    if (!service || !date || !time) {
       return res.status(400).json({
         success: false,
-        error: 'doctorId, service, date, and time are required',
+        error: 'service, date, and time are required',
       });
     }
 
+    // If startTime/endTime are provided, validate against availability.
+    const startTime = req.body.startTime as string | undefined;
+    const endTime = req.body.endTime as string | undefined;
+
+    // Helper to check time inclusion: a <= b
+    const timeLE = (a: string, b: string) => a <= b;
+
+    if (startTime && endTime) {
+      if (doctorId) {
+        // Verify doctor has availability covering this range on the date
+        const avail = await AvailabilityModel.getAvailabilityByDate(doctorId, date);
+        const ok = avail.some((s: any) => s.start <= startTime && s.end >= endTime);
+        if (!ok) {
+          return res.status(400).json({ success: false, error: 'Selected time is not available for this doctor' });
+        }
+      } else {
+        // No doctor assigned: try to find a doctor for this service with matching availability
+        // Find doctors who offer this service
+        const doctors = await PatientModel.getPatientsByRole('doctor');
+        let assignedDoctor: any = null;
+        const normalize = (v: any) => (v || '').toString().trim().toLowerCase();
+
+        const matchesServiceEntry = (entry: any, target: string) => {
+          if (!entry) return false;
+          if (typeof entry === 'string') {
+            const e = normalize(entry);
+            const t = normalize(target);
+            if (e === t) return true;
+            // also match if entry looks like an id and equals target
+            if (e === target) return true;
+            return false;
+          }
+          if (typeof entry === 'object') {
+            // check common fields
+            const fields = ['title', 'name', 'slug', '_id', 'id'];
+            for (const f of fields) {
+              if ((entry as any)[f]) {
+                if (normalize((entry as any)[f]) === normalize(target)) return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        for (const d of doctors) {
+          const svcList = Array.isArray(d.services) ? d.services : [];
+          const hasService = svcList.some((s: any) => matchesServiceEntry(s, service));
+          if (!hasService) continue;
+
+          const avail = await AvailabilityModel.getAvailabilityByDate(String(d._id), date);
+          const ok = avail.some((s: any) => s.start <= startTime && s.end >= endTime);
+          if (ok) {
+            assignedDoctor = d;
+            break;
+          }
+        }
+
+        if (assignedDoctor) {
+          // assign doctorId for the booking
+          doctorId = String(assignedDoctor._id);
+        } else {
+          // No matching doctor found, allow creating an unassigned booking
+          // (a doctor may have posted the exact slot; don't over-restrict)
+          console.warn('No doctor auto-assigned for service/time; creating unassigned booking');
+          // continue without doctorId
+        }
+      }
+    }
+
     const booking = await createBooking({
-      doctorId,
+      ...(doctorId && { doctorId }),
       ...(patientId && { patientId }),
       service,
       date,
@@ -54,24 +127,43 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/bookings - Get all bookings for a patient or doctor
+// GET /api/bookings - Get all bookings for a patient or doctor, or by service, or all bookings
 router.get('/', async (req: Request, res: Response) => {
   try {
     const patientId = req.query.patientId as string;
     const doctorId = req.query.doctorId as string;
-
-    if (!patientId && !doctorId) {
-      return res.status(400).json({
-        success: false,
-        error: 'patientId or doctorId is required',
-      });
-    }
+    const service = req.query.service as string;
 
     let bookings;
-    if (patientId) {
+    
+    // If service is provided, fetch all bookings and filter by service
+    if (service && !patientId && !doctorId) {
+      const allBookings = await getAllBookings();
+      bookings = allBookings.filter((b: any) => b.service === service);
+    } else if (patientId) {
       bookings = await getBookingsByPatientId(patientId);
+    } else if (doctorId) {
+      // For doctor, fetch their assigned bookings + unassigned bookings for their services
+      const doctor = await PatientModel.getPatientById(doctorId);
+      
+      // Get bookings assigned to this doctor
+      const assignedBookings = await getBookingsByDoctorId(doctorId);
+      let unassignedBookings: any[] = [];
+      
+      // If doctor has services, also get unassigned bookings for those services
+      if (doctor && Array.isArray(doctor.services) && doctor.services.length > 0) {
+        const serviceSet = new Set(doctor.services);
+        const allBookings = await getAllBookings();
+        unassignedBookings = allBookings.filter((b: any) => 
+          !b.doctorId && serviceSet.has(b.service)
+        );
+      }
+      
+      // Combine assigned and unassigned bookings
+      bookings = [...assignedBookings, ...unassignedBookings];
     } else {
-      bookings = await getBookingsByDoctorId(doctorId);
+      // If no parameters provided, return all bookings
+      bookings = await getAllBookings();
     }
 
     return res.json({

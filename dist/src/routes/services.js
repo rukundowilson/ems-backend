@@ -10,7 +10,7 @@ router.get('/id/:id', serviceController.getServiceById);
 // Get service by slug
 router.get('/slug/:slug', serviceController.getServiceBySlug);
 // Update service
-router.put('/:id', serviceController.updateService);
+router.patch('/:id', serviceController.updateService);
 // Delete service
 router.delete('/:id', serviceController.deleteService);
 export default router;

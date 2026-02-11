@@ -4,11 +4,25 @@ import * as AvailabilityModel from '../models/Availability.js';
 
 const router = Router();
 
-// GET /api/availability - Get all availability slots for current doctor
+// GET /api/availability - Get availability slots (by service, doctorId, or current doctor)
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
-    const slots = await AvailabilityModel.getDoctorAvailability(doctorId);
+    const service = req.query.service as string | undefined;
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string);
+
+    let slots;
+    if (service) {
+      // Get availability for all doctors with this service
+      slots = await AvailabilityModel.getAvailabilityByService(service);
+    } else if (doctorId) {
+      // Get availability for specific doctor
+      slots = await AvailabilityModel.getDoctorAvailability(doctorId);
+    } else {
+      // Default: current logged-in doctor (if any)
+      const currentDoctorId = '69888d45f732efa099fdbfa6';
+      slots = await AvailabilityModel.getDoctorAvailability(currentDoctorId);
+    }
+
     res.json({ success: true, data: slots });
   } catch (err) {
     res.status(500).json({ success: false, error: (err as Error).message });
@@ -18,7 +32,7 @@ router.get('/', async (req: Request, res: Response) => {
 // GET /api/availability/:date - Get availability for specific date
 router.get('/:date', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || '69888d45f732efa099fdbfa6';
     const date = req.params.date || '';
     if (!date) return res.status(400).json({ success: false, error: 'date required' });
     const slots = await AvailabilityModel.getAvailabilityByDate(doctorId, date);
@@ -31,7 +45,7 @@ router.get('/:date', async (req: Request, res: Response) => {
 // POST /api/availability - Create single or multiple availability slots
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || '69888d45f732efa099fdbfa6';
     const { date, slots } = req.body as { date: string; slots: { start: string; end: string }[] };
 
     if (!date || !slots || !Array.isArray(slots) || slots.length === 0) {
