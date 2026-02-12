@@ -4,7 +4,31 @@ import * as AvailabilityModel from '../models/Availability.js';
 
 const router = Router();
 
+<<<<<<< Updated upstream
 // GET /api/availability - Get all availability slots for current doctor
+=======
+/**
+ * @swagger
+ * /api/availability:
+ *   get:
+ *     tags: [Availability]
+ *     summary: Get availability slots
+ *     parameters:
+ *       - in: query
+ *         name: service
+ *         schema:
+ *           type: string
+ *         description: Service ID or slug
+ *       - in: query
+ *         name: doctorId
+ *         schema:
+ *           type: string
+ *         description: Doctor ID
+ *     responses:
+ *       200:
+ *         description: List of availability slots
+ */
+>>>>>>> Stashed changes
 router.get('/', async (req: Request, res: Response) => {
   try {
     const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
@@ -15,7 +39,27 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/availability/:date - Get availability for specific date
+/**
+ * @swagger
+ * /api/availability/{date}:
+ *   get:
+ *     tags: [Availability]
+ *     summary: Get availability for specific date
+ *     parameters:
+ *       - in: path
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Date in YYYY-MM-DD format
+ *       - in: query
+ *         name: doctorId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Availability slots for date
+ */
 router.get('/:date', async (req: Request, res: Response) => {
   try {
     const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
@@ -28,7 +72,42 @@ router.get('/:date', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/availability - Create single or multiple availability slots
+/**
+ * @swagger
+ * /api/availability:
+ *   post:
+ *     tags: [Availability]
+ *     summary: Create availability slots
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - date
+ *               - slots
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 description: Date in YYYY-MM-DD format
+ *               slots:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     start:
+ *                       type: string
+ *                       description: Start time HH:MM
+ *                     end:
+ *                       type: string
+ *                       description: End time HH:MM
+ *     responses:
+ *       201:
+ *         description: Slots created
+ *       409:
+ *         description: Time conflict
+ */
 router.post('/', async (req: Request, res: Response) => {
   try {
     const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
@@ -59,7 +138,36 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/availability/:id - Update availability slot
+/**
+ * @swagger
+ * /api/availability/{id}:
+ *   patch:
+ *     tags: [Availability]
+ *     summary: Update availability slot
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start:
+ *                 type: string
+ *               end:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Slot updated
+ *       404:
+ *         description: Slot not found
+ */
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id || '';
@@ -81,7 +189,24 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/availability/:id - Delete availability slot
+/**
+ * @swagger
+ * /api/availability/{id}:
+ *   delete:
+ *     tags: [Availability]
+ *     summary: Delete availability slot
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Slot deleted
+ *       404:
+ *         description: Slot not found
+ */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id || '';

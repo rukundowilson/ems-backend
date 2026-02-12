@@ -134,6 +134,54 @@ router.get('/doctors', adminController.getAllDoctors);
 
 /**
  * @swagger
+ * /api/admin/doctors:
+ *   post:
+ *     tags: [Admin - Doctors]
+ *     summary: Create a new doctor
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Doctor created
+ *       409:
+ *         description: Email already exists
+ */
+router.post('/doctors', adminController.createDoctor);
+
+/**
+ * @swagger
+ * /api/admin/bookings:
+ *   get:
+ *     tags: [Admin - Bookings]
+ *     summary: Get all bookings
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of bookings
+ */
+router.get('/bookings', adminController.getAllBookings);
+
+/**
+ * @swagger
  * /api/admin/services:
  *   get:
  *     tags: [Admin - Services]

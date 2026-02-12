@@ -58,6 +58,10 @@ const options = {
     tags: [
       { name: 'Auth', description: 'Authentication endpoints' },
       { name: 'Doctors', description: 'Doctor management endpoints' },
+      { name: 'Patients', description: 'Patient management endpoints' },
+      { name: 'Services', description: 'Service management endpoints' },
+      { name: 'Bookings', description: 'Booking management endpoints' },
+      { name: 'Availability', description: 'Doctor availability management' },
       { name: 'Admin - Patients', description: 'Admin patient management' },
       { name: 'Admin - Doctors', description: 'Admin doctor management' },
       { name: 'Admin - Services', description: 'Admin service management' },

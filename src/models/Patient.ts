@@ -9,6 +9,14 @@ export interface Patient {
   firebaseUid?: string | undefined;
   passwordHash?: string | undefined;
   role?: 'patient' | 'doctor' | 'admin';
+<<<<<<< Updated upstream
+=======
+  services?: string[];
+  specialization?: string;
+  title?: string;
+  availability?: string;
+  status?: string;
+>>>>>>> Stashed changes
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -20,7 +28,11 @@ export async function getPatientsCollection() {
   return db.collection<Patient>(COLLECTION_NAME);
 }
 
+<<<<<<< Updated upstream
 export async function createPatient(payload: { firebaseUid?: string | undefined; email?: string | undefined; name?: string | undefined; phone?: string | undefined; passwordHash?: string | undefined; role?: 'patient' | 'doctor' | 'admin' }) {
+=======
+export async function createPatient(payload: { firebaseUid?: string | undefined; email?: string | undefined; name?: string | undefined; phone?: string | undefined; passwordHash?: string | undefined; role?: 'patient' | 'doctor' | 'admin'; services?: string[]; specialization?: string; title?: string; availability?: string; status?: string }) {
+>>>>>>> Stashed changes
   const collection = await getPatientsCollection();
   const doc: Patient = {
     firebaseUid: payload.firebaseUid || undefined,
@@ -29,6 +41,14 @@ export async function createPatient(payload: { firebaseUid?: string | undefined;
     phone: payload.phone,
     passwordHash: payload.passwordHash || undefined,
     role: payload.role || 'patient',
+<<<<<<< Updated upstream
+=======
+    services: (payload as any).services || undefined,
+    specialization: payload.specialization || undefined,
+    title: payload.title || undefined,
+    availability: payload.availability || undefined,
+    status: payload.status || undefined,
+>>>>>>> Stashed changes
     createdAt: new Date(),
     updatedAt: new Date(),
   };
