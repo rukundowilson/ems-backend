@@ -111,3 +111,8 @@ export async function deleteBooking(id: string) {
     return false;
   }
 }
+
+export async function getAllBookings() {
+  const collection = await getBookingsCollection();
+  return collection.find({}).toArray();
+}

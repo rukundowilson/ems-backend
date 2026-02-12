@@ -315,4 +315,21 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/bookings/all - Get all bookings (for admin)
+router.get('/all', async (req: Request, res: Response) => {
+  try {
+    const bookings = await getAllBookings();
+    return res.json({
+      success: true,
+      data: bookings,
+    });
+  } catch (err) {
+    console.error('Fetch all bookings error:', err);
+    return res.status(500).json({
+      success: false,
+      error: (err as Error).message,
+    });
+  }
+});
+
 export default router;
