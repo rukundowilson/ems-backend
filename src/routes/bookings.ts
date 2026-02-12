@@ -1,13 +1,9 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
-<<<<<<< HEAD
-import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, updateBooking, deleteBooking, getAllBookings } from '../models/Booking.js';
-=======
 import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, getAllBookings, updateBooking, deleteBooking } from '../models/Booking.js';
 import * as PatientModel from '../models/Patient.js';
 import * as ServiceModel from '../models/Service.js';
 import * as AvailabilityModel from '../models/Availability.js';
->>>>>>> dff894573ef799d1fdc0455de4ab31b3e345539f
 
 const router = Router();
 
@@ -137,19 +133,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const patientId = req.query.patientId as string;
     const doctorId = req.query.doctorId as string;
-<<<<<<< HEAD
-
-    // If no filters provided, return all bookings
-    if (!patientId && !doctorId) {
-      const allBookings = await getAllBookings();
-      return res.json({
-        success: true,
-        data: allBookings,
-      });
-    }
-=======
     const service = req.query.service as string;
->>>>>>> dff894573ef799d1fdc0455de4ab31b3e345539f
 
     let bookings;
     
