@@ -244,5 +244,18 @@ router.patch('/services/:id', adminController.updateService);
  *         description: Service not found
  */
 router.delete('/services/:id', adminController.deleteService);
+/**
+ * @swagger
+ * /api/admin/bookings:
+ *   get:
+ *     tags: [Admin - Bookings]
+ *     summary: Get all bookings
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all bookings
+ */
+router.get('/bookings', adminController.getAllBookings);
 export default router;
 //# sourceMappingURL=admin.js.map

@@ -10,4 +10,5 @@ export declare function getServiceById(req: AuthRequest, res: Response): Promise
 export declare function createService(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function updateService(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function deleteService(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
+export declare function getAllBookings(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 //# sourceMappingURL=adminController.d.ts.map

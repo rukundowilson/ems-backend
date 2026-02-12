@@ -1,5 +1,6 @@
 import * as PatientModel from '../models/Patient.js';
 import * as ServiceModel from '../models/Service.js';
+import * as BookingModel from '../models/Booking.js';
 // ========== PATIENT MANAGEMENT ==========
 export async function getAllPatients(req, res) {
     try {
@@ -152,6 +153,16 @@ export async function deleteService(req, res) {
         if (!deleted)
             return res.status(404).json({ success: false, error: 'Service not found' });
         return res.json({ success: true, message: 'Service deleted' });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+}
+// ========== BOOKING MANAGEMENT ==========
+export async function getAllBookings(req, res) {
+    try {
+        const bookings = await BookingModel.getAllBookings();
+        return res.json({ success: true, data: bookings });
     }
     catch (err) {
         return res.status(500).json({ success: false, error: err.message });
