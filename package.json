@@ -5,6 +5,9 @@
   "engines": {
   "node": "20.x"
    },
+   "overrides": {
+  "signal-exit": "^4.1.0"
+  },
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
