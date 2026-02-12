@@ -32,4 +32,22 @@ export async function getPatientById(id) {
     const collection = await getPatientsCollection();
     return collection.findOne({ _id: new ObjectId(id) });
 }
+export async function getAllPatients() {
+    const collection = await getPatientsCollection();
+    return collection.find({}).toArray();
+}
+export async function getPatientsByRole(role) {
+    const collection = await getPatientsCollection();
+    return collection.find({ role }).toArray();
+}
+export async function updatePatient(id, updates) {
+    const collection = await getPatientsCollection();
+    const result = await collection.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: { ...updates, updatedAt: new Date() } }, { returnDocument: 'after' });
+    return result || null;
+}
+export async function deletePatient(id) {
+    const collection = await getPatientsCollection();
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+}
 //# sourceMappingURL=Patient.js.map

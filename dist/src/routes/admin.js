@@ -1,13 +1,10 @@
 import { Router } from 'express';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import * as adminController from '../controllers/adminController.js';
-
 const router = Router();
-
 // Apply authentication middleware to all admin routes
 router.use(verifyToken);
 router.use(requireAdmin);
-
 /**
  * @swagger
  * /api/admin/patients:
@@ -36,7 +33,6 @@ router.use(requireAdmin);
  *         $ref: '#/components/schemas/Error'
  */
 router.get('/patients', adminController.getAllPatients);
-
 /**
  * @swagger
  * /api/admin/patients/{id}:
@@ -58,7 +54,6 @@ router.get('/patients', adminController.getAllPatients);
  *         description: Patient not found
  */
 router.get('/patients/:id', adminController.getPatientById);
-
 /**
  * @swagger
  * /api/admin/patients/{id}:
@@ -95,7 +90,6 @@ router.get('/patients/:id', adminController.getPatientById);
  *         description: Patient not found
  */
 router.patch('/patients/:id', adminController.updatePatient);
-
 /**
  * @swagger
  * /api/admin/patients/{id}:
@@ -117,7 +111,6 @@ router.patch('/patients/:id', adminController.updatePatient);
  *         description: Patient not found
  */
 router.delete('/patients/:id', adminController.deletePatient);
-
 /**
  * @swagger
  * /api/admin/doctors:
@@ -131,7 +124,6 @@ router.delete('/patients/:id', adminController.deletePatient);
  *         description: List of doctors
  */
 router.get('/doctors', adminController.getAllDoctors);
-
 /**
  * @swagger
  * /api/admin/services:
@@ -145,7 +137,6 @@ router.get('/doctors', adminController.getAllDoctors);
  *         description: List of services
  */
 router.get('/services', adminController.getAllServices);
-
 /**
  * @swagger
  * /api/admin/services/{id}:
@@ -167,7 +158,6 @@ router.get('/services', adminController.getAllServices);
  *         description: Service not found
  */
 router.get('/services/:id', adminController.getServiceById);
-
 /**
  * @swagger
  * /api/admin/services:
@@ -200,7 +190,6 @@ router.get('/services/:id', adminController.getServiceById);
  *         description: Service slug already exists
  */
 router.post('/services', adminController.createService);
-
 /**
  * @swagger
  * /api/admin/services/{id}:
@@ -234,7 +223,6 @@ router.post('/services', adminController.createService);
  *         description: Service not found
  */
 router.patch('/services/:id', adminController.updateService);
-
 /**
  * @swagger
  * /api/admin/services/{id}:
@@ -256,19 +244,5 @@ router.patch('/services/:id', adminController.updateService);
  *         description: Service not found
  */
 router.delete('/services/:id', adminController.deleteService);
-
-/**
- * @swagger
- * /api/admin/bookings:
- *   get:
- *     tags: [Admin - Bookings]
- *     summary: Get all bookings
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all bookings
- */
-router.get('/bookings', adminController.getAllBookings);
-
 export default router;
+//# sourceMappingURL=admin.js.map

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
-import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, updateBooking, deleteBooking } from '../models/Booking.js';
+import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, updateBooking, deleteBooking, getAllBookings } from '../models/Booking.js';
 
 const router = Router();
 
@@ -60,10 +60,12 @@ router.get('/', async (req: Request, res: Response) => {
     const patientId = req.query.patientId as string;
     const doctorId = req.query.doctorId as string;
 
+    // If no filters provided, return all bookings
     if (!patientId && !doctorId) {
-      return res.status(400).json({
-        success: false,
-        error: 'patientId or doctorId is required',
+      const allBookings = await getAllBookings();
+      return res.json({
+        success: true,
+        data: allBookings,
       });
     }
 
@@ -193,6 +195,23 @@ router.delete('/:id', async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error('Delete booking error:', err);
+    return res.status(500).json({
+      success: false,
+      error: (err as Error).message,
+    });
+  }
+});
+
+// GET /api/bookings/all - Get all bookings (for admin)
+router.get('/all', async (req: Request, res: Response) => {
+  try {
+    const bookings = await getAllBookings();
+    return res.json({
+      success: true,
+      data: bookings,
+    });
+  } catch (err) {
+    console.error('Fetch all bookings error:', err);
     return res.status(500).json({
       success: false,
       error: (err as Error).message,

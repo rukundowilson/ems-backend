@@ -32,4 +32,8 @@ export declare function createPatient(payload: {
 export declare function getPatientByFirebaseUid(uid: string): Promise<import("mongodb").WithId<Patient> | null>;
 export declare function getPatientByEmail(email: string): Promise<import("mongodb").WithId<Patient> | null>;
 export declare function getPatientById(id: string): Promise<import("mongodb").WithId<Patient> | null>;
+export declare function getAllPatients(): Promise<import("mongodb").WithId<Patient>[]>;
+export declare function getPatientsByRole(role: 'patient' | 'doctor' | 'admin'): Promise<import("mongodb").WithId<Patient>[]>;
+export declare function updatePatient(id: string, updates: Partial<Patient>): Promise<import("mongodb").WithId<Patient> | null>;
+export declare function deletePatient(id: string): Promise<boolean>;
 //# sourceMappingURL=Patient.d.ts.map

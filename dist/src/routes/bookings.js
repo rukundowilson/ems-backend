@@ -98,8 +98,8 @@ router.get('/:id', async (req, res) => {
         });
     }
 });
-// PUT /api/bookings/:id - Update a booking
-router.put('/:id', async (req, res) => {
+// PATCH /api/bookings/:id - Update a booking
+router.patch('/:id', async (req, res) => {
     try {
         const id = req.params.id || '';
         const { date, time, status } = req.body;

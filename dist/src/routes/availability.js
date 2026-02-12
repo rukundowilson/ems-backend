@@ -50,8 +50,8 @@ router.post('/', async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
-// PUT /api/availability/:id - Update availability slot
-router.put('/:id', async (req, res) => {
+// PATCH /api/availability/:id - Update availability slot
+router.patch('/:id', async (req, res) => {
     try {
         const id = req.params.id || '';
         if (!id)
