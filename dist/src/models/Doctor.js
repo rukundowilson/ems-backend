@@ -27,4 +27,18 @@ export async function deleteDoctor(id) {
     const result = await collection.deleteOne({ _id: new ObjectId(id), role: 'doctor' });
     return result.deletedCount > 0;
 }
+export async function addServiceToDoctor(doctorId, serviceId) {
+    const collection = await getDoctorsCollection();
+    const result = await collection.findOneAndUpdate({ _id: new ObjectId(doctorId), role: 'doctor' }, { $addToSet: { services: serviceId }, $set: { updatedAt: new Date() } }, { returnDocument: 'after' });
+    return result || null;
+}
+export async function removeServiceFromDoctor(doctorId, serviceId) {
+    const collection = await getDoctorsCollection();
+    const result = await collection.findOneAndUpdate({ _id: new ObjectId(doctorId), role: 'doctor' }, { $pull: { services: serviceId }, $set: { updatedAt: new Date() } }, { returnDocument: 'after' });
+    return result || null;
+}
+export async function getServicesForDoctor(doctorId) {
+    const doctor = await getDoctorById(doctorId);
+    return doctor?.services || [];
+}
 //# sourceMappingURL=Doctor.js.map

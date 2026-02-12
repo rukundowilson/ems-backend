@@ -19,4 +19,7 @@ export declare function getDoctorById(id: string): Promise<import("mongodb").Wit
 export declare function getDoctorByEmail(email: string): Promise<import("mongodb").WithId<Doctor> | null>;
 export declare function updateDoctor(id: string, updates: Partial<Doctor>): Promise<import("mongodb").WithId<Doctor> | null>;
 export declare function deleteDoctor(id: string): Promise<boolean>;
+export declare function addServiceToDoctor(doctorId: string, serviceId: string): Promise<import("mongodb").WithId<Doctor> | null>;
+export declare function removeServiceFromDoctor(doctorId: string, serviceId: string): Promise<import("mongodb").WithId<Doctor> | null>;
+export declare function getServicesForDoctor(doctorId: string): Promise<string[]>;
 //# sourceMappingURL=Doctor.d.ts.map
