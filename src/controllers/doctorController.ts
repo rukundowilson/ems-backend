@@ -73,8 +73,14 @@ export async function getDoctorById(req: Request, res: Response) {
     const doctor = await DoctorModel.getDoctorById(id);
     if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
 
+    console.log('Doctor from DB:', JSON.stringify(doctor, null, 2));
     const { passwordHash, ...sanitized } = doctor;
-    return res.json({ success: true, data: sanitized });
+    const response = {
+      ...sanitized,
+      services: (doctor as any).services || undefined,
+    };
+    console.log('Response:', JSON.stringify(response, null, 2));
+    return res.json({ success: true, data: response });
   } catch (err) {
     return res.status(500).json({ success: false, error: (err as Error).message });
   }
@@ -85,7 +91,7 @@ export async function updateDoctor(req: Request, res: Response) {
     const id = req.params.id;
     if (!id) return res.status(400).json({ success: false, error: 'ID required' });
 
-    const { name, phone, email, specialization, experience, qualification } = req.body;
+    const { name, phone, email, specialization, experience, qualification, services } = req.body;
     const updates: any = {};
     if (name !== undefined) updates.name = name;
     if (phone !== undefined) updates.phone = phone;
@@ -93,6 +99,7 @@ export async function updateDoctor(req: Request, res: Response) {
     if (specialization !== undefined) updates.specialization = specialization;
     if (experience !== undefined) updates.experience = experience;
     if (qualification !== undefined) updates.qualification = qualification;
+    if (services !== undefined) updates.services = services;
 
     const updated = await DoctorModel.updateDoctor(id, updates);
     if (!updated) return res.status(404).json({ success: false, error: 'Doctor not found' });

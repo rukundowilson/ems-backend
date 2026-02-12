@@ -9,11 +9,11 @@ router.post('/', serviceController.createService);
 // Get all services
 router.get('/', serviceController.getAllServices);
 
-// Get service by ID
-router.get('/id/:id', serviceController.getServiceById);
-
-// Get service by slug
+// Get service by slug (more specific - must come before :id)
 router.get('/slug/:slug', serviceController.getServiceBySlug);
+
+// Get service by ID (less specific - comes after slug)
+router.get('/:id', serviceController.getServiceById);
 
 // Update service
 router.patch('/:id', serviceController.updateService);
