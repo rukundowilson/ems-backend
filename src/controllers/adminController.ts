@@ -2,6 +2,7 @@ import type { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.js';
 import * as PatientModel from '../models/Patient.js';
 import * as ServiceModel from '../models/Service.js';
+import * as BookingModel from '../models/Booking.js';
 
 // ========== PATIENT MANAGEMENT ==========
 
@@ -154,6 +155,17 @@ export async function deleteService(req: AuthRequest, res: Response) {
     if (!deleted) return res.status(404).json({ success: false, error: 'Service not found' });
 
     return res.json({ success: true, message: 'Service deleted' });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+// ========== BOOKING MANAGEMENT ==========
+
+export async function getAllBookings(req: AuthRequest, res: Response) {
+  try {
+    const bookings = await BookingModel.getAllBookings();
+    return res.json({ success: true, data: bookings });
   } catch (err) {
     return res.status(500).json({ success: false, error: (err as Error).message });
   }

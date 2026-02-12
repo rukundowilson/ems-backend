@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
+import * as BookingModel from '../models/Booking.js';
 
 const router = Router();
 
@@ -26,23 +27,19 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Save booking to database
-    // For now, we'll just return a success response
-    const booking = {
-      _id: Math.random().toString(36).substr(2, 9),
+    const booking = await BookingModel.createBooking({
       doctorId,
-      patientId: patientId || null,
+      patientId: patientId || undefined,
       service,
       date,
       time,
-      patientEmail: patientEmail || null,
-      patientName: patientName || null,
-      patientPhone: patientPhone || null,
-      paymentMethod: paymentMethod || null,
-      amount: amount || 0,
-      status: 'confirmed',
-      createdAt: new Date(),
-    };
+      patientEmail,
+      patientName,
+      patientPhone,
+      paymentMethod,
+      amount,
+      status: 'pending',
+    });
 
     return res.status(201).json({
       success: true,
@@ -64,16 +61,14 @@ router.get('/', async (req: Request, res: Response) => {
     const patientId = req.query.patientId as string;
     const doctorId = req.query.doctorId as string;
 
-    if (!patientId && !doctorId) {
-      return res.status(400).json({
-        success: false,
-        error: 'patientId or doctorId is required',
-      });
+    let bookings;
+    if (patientId) {
+      bookings = await BookingModel.getBookingsByPatient(patientId);
+    } else if (doctorId) {
+      bookings = await BookingModel.getBookingsByDoctor(doctorId);
+    } else {
+      bookings = await BookingModel.getAllBookings();
     }
-
-    // TODO: Fetch bookings from database
-    // For now, return empty array
-    const bookings: any[] = [];
 
     return res.json({
       success: true,
@@ -100,11 +95,17 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Fetch booking from database
-    // For now, return error
-    return res.status(404).json({
-      success: false,
-      error: 'Booking not found',
+    const booking = await BookingModel.getBookingById(id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        error: 'Booking not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: booking,
     });
   } catch (err) {
     console.error('Fetch booking error:', err);
@@ -132,11 +133,22 @@ router.patch('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Update booking in database
-    // For now, return error
-    return res.status(404).json({
-      success: false,
-      error: 'Booking not found',
+    const updates: any = {};
+    if (date) updates.date = date;
+    if (time) updates.time = time;
+    if (status) updates.status = status;
+
+    const updated = await BookingModel.updateBooking(id, updates);
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        error: 'Booking not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: updated,
     });
   } catch (err) {
     console.error('Update booking error:', err);
@@ -159,11 +171,17 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Delete booking from database
-    // For now, return error
-    return res.status(404).json({
-      success: false,
-      error: 'Booking not found',
+    const deleted = await BookingModel.deleteBooking(id);
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: 'Booking not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Booking deleted',
     });
   } catch (err) {
     console.error('Delete booking error:', err);

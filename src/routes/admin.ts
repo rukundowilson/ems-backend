@@ -257,4 +257,18 @@ router.patch('/services/:id', adminController.updateService);
  */
 router.delete('/services/:id', adminController.deleteService);
 
+/**
+ * @swagger
+ * /api/admin/bookings:
+ *   get:
+ *     tags: [Admin - Bookings]
+ *     summary: Get all bookings
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of bookings
+ */
+router.get('/bookings', adminController.getAllBookings);
+
 export default router;
