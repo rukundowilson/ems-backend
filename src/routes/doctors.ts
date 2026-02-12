@@ -191,7 +191,7 @@ router.post('/:id/services', verifyToken, requireAdmin, async (req, res) => {
       });
     }
 
-    const updatedDoctor = await DoctorModel.addServiceToDoctor(id, serviceId);
+    const updatedDoctor = await DoctorModel.addServiceToDoctor(id!, serviceId);
 
     if (!updatedDoctor) {
       return res.status(404).json({
@@ -243,7 +243,7 @@ router.delete('/:id/services/:serviceId', verifyToken, requireAdmin, async (req,
   try {
     const { id, serviceId } = req.params;
 
-    const updatedDoctor = await DoctorModel.removeServiceFromDoctor(id, serviceId);
+    const updatedDoctor = await DoctorModel.removeServiceFromDoctor(id!, serviceId!);
 
     if (!updatedDoctor) {
       return res.status(404).json({

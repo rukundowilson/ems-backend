@@ -1,11 +1,34 @@
 import { Router } from 'express';
 import * as AvailabilityModel from '../models/Availability.js';
 const router = Router();
-// GET /api/availability - Get all availability slots for current doctor
+// GET /api/availability - Get availability slots (by service, doctorId, or current doctor)
 router.get('/', async (req, res) => {
     try {
-        const doctorId = req.firebase?.uid || req.query.doctorId || '69888d45f732efa099fdbfa6';
-        const slots = await AvailabilityModel.getDoctorAvailability(doctorId);
+        const service = req.query.service;
+        const doctorId = req.firebase?.uid || req.query.doctorId;
+        let slots;
+        if (service) {
+            // Detect if service is an ID (24-char hex) or slug
+            // MongoDB ObjectIds are 24 hex characters
+            const isObjectId = /^[0-9a-f]{24}$/i.test(service);
+            if (isObjectId) {
+                // Get availability for all doctors with this service ID
+                slots = await AvailabilityModel.getAvailabilityByServiceId(service);
+            }
+            else {
+                // Get availability for all doctors with this service slug
+                slots = await AvailabilityModel.getAvailabilityByService(service);
+            }
+        }
+        else if (doctorId) {
+            // Get availability for specific doctor
+            slots = await AvailabilityModel.getDoctorAvailability(doctorId);
+        }
+        else {
+            // Default: current logged-in doctor (if any)
+            const currentDoctorId = '69888d45f732efa099fdbfa6';
+            slots = await AvailabilityModel.getDoctorAvailability(currentDoctorId);
+        }
         res.json({ success: true, data: slots });
     }
     catch (err) {

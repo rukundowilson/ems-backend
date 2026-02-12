@@ -16,4 +16,6 @@ export declare function createBulkAvailability(doctorId: string, availabilities:
 export declare function updateAvailability(id: string, updates: Partial<Availability>): Promise<Availability | null>;
 export declare function deleteAvailability(id: string): Promise<boolean>;
 export declare function deleteAvailabilityByDate(doctorId: string, date: string): Promise<number>;
+export declare function getAvailabilityByService(serviceSlug: string): Promise<Availability[]>;
+export declare function getAvailabilityByServiceId(serviceId: string): Promise<Availability[]>;
 //# sourceMappingURL=Availability.d.ts.map
