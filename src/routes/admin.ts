@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import * as adminController from '../controllers/adminController.js';
+import * as doctorController from '../controllers/doctorController.js';
 
 const router = Router();
 
@@ -164,7 +165,7 @@ router.get('/doctors', adminController.getAllDoctors);
  *       409:
  *         description: Email already exists
  */
-router.post('/doctors', adminController.createDoctor);
+router.post('/doctors', doctorController.createDoctor);
 
 /**
  * @swagger

@@ -4,9 +4,6 @@ import * as AvailabilityModel from '../models/Availability.js';
 
 const router = Router();
 
-<<<<<<< Updated upstream
-// GET /api/availability - Get all availability slots for current doctor
-=======
 /**
  * @swagger
  * /api/availability:
@@ -28,7 +25,6 @@ const router = Router();
  *       200:
  *         description: List of availability slots
  */
->>>>>>> Stashed changes
 router.get('/', async (req: Request, res: Response) => {
   try {
     const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';

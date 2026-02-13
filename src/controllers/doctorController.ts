@@ -51,11 +51,11 @@ export async function createDoctor(req: Request | AuthRequest, res: Response) {
       phone: phone || '',
       passwordHash: hash,
       role: 'doctor',
-      specialization,
-      title,
-      availability,
-      status,
-      services: serviceId ? [serviceId] : [],
+      specialization: specialization || undefined,
+      title: title || undefined,
+      availability: availability || undefined,
+      status: status || 'Active',
+      services: serviceId ? [serviceId] : undefined,
     });
 
     const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
@@ -102,19 +102,13 @@ export async function updateDoctor(req: Request, res: Response) {
     const id = req.params.id;
     if (!id) return res.status(400).json({ success: false, error: 'ID required' });
 
-<<<<<<< Updated upstream
-    const { name, phone, email, specialization, experience, qualification } = req.body;
-=======
     const { name, phone, email, specialization, experience, qualification, services, title, availability, status } = req.body;
->>>>>>> Stashed changes
     const updates: any = {};
     if (name !== undefined) updates.name = name;
     if (phone !== undefined) updates.phone = phone;
     if (email !== undefined) updates.email = email;
     if (experience !== undefined) updates.experience = experience;
     if (qualification !== undefined) updates.qualification = qualification;
-<<<<<<< Updated upstream
-=======
     if (title !== undefined) updates.title = title;
     if (availability !== undefined) updates.availability = availability;
     if (status !== undefined) updates.status = status;
@@ -134,7 +128,6 @@ export async function updateDoctor(req: Request, res: Response) {
     } else if (services !== undefined) {
       updates.services = services;
     }
->>>>>>> Stashed changes
 
     const updated = await DoctorModel.updateDoctor(id, updates);
     if (!updated) return res.status(404).json({ success: false, error: 'Doctor not found' });

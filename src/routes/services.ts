@@ -46,13 +46,6 @@ router.post('/', serviceController.createService);
  */
 router.get('/', serviceController.getAllServices);
 
-<<<<<<< Updated upstream
-// Get service by ID
-router.get('/id/:id', serviceController.getServiceById);
-
-// Get service by slug
-router.get('/slug/:slug', serviceController.getServiceBySlug);
-=======
 /**
  * @swagger
  * /api/services/slug/{slug}:
@@ -92,7 +85,6 @@ router.get('/slug/:slug', serviceController.getServiceBySlug);
  *         description: Service not found
  */
 router.get('/:id', serviceController.getServiceById);
->>>>>>> Stashed changes
 
 /**
  * @swagger

@@ -9,14 +9,11 @@ export interface Patient {
   firebaseUid?: string | undefined;
   passwordHash?: string | undefined;
   role?: 'patient' | 'doctor' | 'admin';
-<<<<<<< Updated upstream
-=======
   services?: string[];
   specialization?: string;
   title?: string;
   availability?: string;
   status?: string;
->>>>>>> Stashed changes
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -28,30 +25,25 @@ export async function getPatientsCollection() {
   return db.collection<Patient>(COLLECTION_NAME);
 }
 
-<<<<<<< Updated upstream
-export async function createPatient(payload: { firebaseUid?: string | undefined; email?: string | undefined; name?: string | undefined; phone?: string | undefined; passwordHash?: string | undefined; role?: 'patient' | 'doctor' | 'admin' }) {
-=======
 export async function createPatient(payload: { firebaseUid?: string | undefined; email?: string | undefined; name?: string | undefined; phone?: string | undefined; passwordHash?: string | undefined; role?: 'patient' | 'doctor' | 'admin'; services?: string[]; specialization?: string; title?: string; availability?: string; status?: string }) {
->>>>>>> Stashed changes
   const collection = await getPatientsCollection();
   const doc: Patient = {
-    firebaseUid: payload.firebaseUid || undefined,
     email: payload.email,
     name: payload.name,
     phone: payload.phone,
-    passwordHash: payload.passwordHash || undefined,
     role: payload.role || 'patient',
-<<<<<<< Updated upstream
-=======
-    services: (payload as any).services || undefined,
-    specialization: payload.specialization || undefined,
-    title: payload.title || undefined,
-    availability: payload.availability || undefined,
-    status: payload.status || undefined,
->>>>>>> Stashed changes
+    status: payload.status || 'Active',
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  
+  if (payload.firebaseUid) doc.firebaseUid = payload.firebaseUid;
+  if (payload.passwordHash) doc.passwordHash = payload.passwordHash;
+  if (payload.services && payload.services.length > 0) doc.services = payload.services;
+  if (payload.specialization) doc.specialization = payload.specialization;
+  if (payload.title) doc.title = payload.title;
+  if (payload.availability) doc.availability = payload.availability;
+  
   const result = await collection.insertOne(doc);
   return { ...doc, _id: result.insertedId };
 }
