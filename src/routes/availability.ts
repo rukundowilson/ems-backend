@@ -4,44 +4,61 @@ import * as AvailabilityModel from '../models/Availability.js';
 
 const router = Router();
 
-// GET /api/availability - Get availability slots (by service, doctorId, or current doctor)
+/**
+ * @swagger
+ * /api/availability:
+ *   get:
+ *     tags: [Availability]
+ *     summary: Get availability slots
+ *     parameters:
+ *       - in: query
+ *         name: service
+ *         schema:
+ *           type: string
+ *         description: Service ID or slug
+ *       - in: query
+ *         name: doctorId
+ *         schema:
+ *           type: string
+ *         description: Doctor ID
+ *     responses:
+ *       200:
+ *         description: List of availability slots
+ */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const service = req.query.service as string | undefined;
-    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string);
-
-    let slots;
-    if (service) {
-      // Detect if service is an ID (24-char hex) or slug
-      // MongoDB ObjectIds are 24 hex characters
-      const isObjectId = /^[0-9a-f]{24}$/i.test(service);
-      
-      if (isObjectId) {
-        // Get availability for all doctors with this service ID
-        slots = await AvailabilityModel.getAvailabilityByServiceId(service);
-      } else {
-        // Get availability for all doctors with this service slug
-        slots = await AvailabilityModel.getAvailabilityByService(service);
-      }
-    } else if (doctorId) {
-      // Get availability for specific doctor
-      slots = await AvailabilityModel.getDoctorAvailability(doctorId);
-    } else {
-      // Default: current logged-in doctor (if any)
-      const currentDoctorId = '69888d45f732efa099fdbfa6';
-      slots = await AvailabilityModel.getDoctorAvailability(currentDoctorId);
-    }
-
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
+    const slots = await AvailabilityModel.getDoctorAvailability(doctorId);
     res.json({ success: true, data: slots });
   } catch (err) {
     res.status(500).json({ success: false, error: (err as Error).message });
   }
 });
 
-// GET /api/availability/:date - Get availability for specific date
+/**
+ * @swagger
+ * /api/availability/{date}:
+ *   get:
+ *     tags: [Availability]
+ *     summary: Get availability for specific date
+ *     parameters:
+ *       - in: path
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Date in YYYY-MM-DD format
+ *       - in: query
+ *         name: doctorId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Availability slots for date
+ */
 router.get('/:date', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || '69888d45f732efa099fdbfa6';
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
     const date = req.params.date || '';
     if (!date) return res.status(400).json({ success: false, error: 'date required' });
     const slots = await AvailabilityModel.getAvailabilityByDate(doctorId, date);
@@ -51,10 +68,45 @@ router.get('/:date', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/availability - Create single or multiple availability slots
+/**
+ * @swagger
+ * /api/availability:
+ *   post:
+ *     tags: [Availability]
+ *     summary: Create availability slots
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - date
+ *               - slots
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 description: Date in YYYY-MM-DD format
+ *               slots:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     start:
+ *                       type: string
+ *                       description: Start time HH:MM
+ *                     end:
+ *                       type: string
+ *                       description: End time HH:MM
+ *     responses:
+ *       201:
+ *         description: Slots created
+ *       409:
+ *         description: Time conflict
+ */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || '69888d45f732efa099fdbfa6';
+    const doctorId = (req as any).firebase?.uid || (req.query.doctorId as string) || 'doctor-1';
     const { date, slots } = req.body as { date: string; slots: { start: string; end: string }[] };
 
     if (!date || !slots || !Array.isArray(slots) || slots.length === 0) {
@@ -82,7 +134,36 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/availability/:id - Update availability slot
+/**
+ * @swagger
+ * /api/availability/{id}:
+ *   patch:
+ *     tags: [Availability]
+ *     summary: Update availability slot
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start:
+ *                 type: string
+ *               end:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Slot updated
+ *       404:
+ *         description: Slot not found
+ */
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id || '';
@@ -104,7 +185,24 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/availability/:id - Delete availability slot
+/**
+ * @swagger
+ * /api/availability/{id}:
+ *   delete:
+ *     tags: [Availability]
+ *     summary: Delete availability slot
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Slot deleted
+ *       404:
+ *         description: Slot not found
+ */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id || '';

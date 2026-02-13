@@ -44,6 +44,11 @@ export async function getServiceBySlug(slug: string) {
   return collection.findOne({ slug });
 }
 
+export async function getServiceByTitle(title: string) {
+  const collection = await getServicesCollection();
+  return collection.findOne({ title });
+}
+
 export async function getAllServices() {
   const collection = await getServicesCollection();
   return collection.find({}).toArray();

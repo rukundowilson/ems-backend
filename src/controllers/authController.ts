@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import * as PatientModel from '../models/Patient.js';
 
 export async function signup(req: Request, res: Response) {
   try {
-    const { name, email, password, phone, role } = req.body as { name?: string; email?: string; password?: string; phone?: string; role?: 'patient' | 'doctor' | 'admin' };
+    const { name, email, password, phone, role, specialization, title, availability, status } = req.body as { name?: string; email?: string; password?: string; phone?: string; role?: 'patient' | 'doctor' | 'admin'; specialization?: string; title?: string; availability?: string; status?: string };
     if (!email || !password) return res.status(400).json({ success: false, error: 'email and password required' });
 
     // prevent duplicate
@@ -15,7 +15,7 @@ export async function signup(req: Request, res: Response) {
     const hash = await bcrypt.hash(password, 10);
     // Default role to 'patient' if not provided
     const userRole = role || 'patient';
-    const created = await PatientModel.createPatient({ email, name, phone, passwordHash: hash, role: userRole });
+    const created = await PatientModel.createPatient({ email, name, phone, passwordHash: hash, role: userRole, specialization, title, availability, status });
 
     const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
     const token = jwt.sign({ sub: created._id?.toString(), email: created.email, role: created.role }, secret, { expiresIn: '7d' });
