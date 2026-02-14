@@ -11,7 +11,7 @@ const options = {
     servers: [
       {
         url: 'https://ems-backend-2-jl41.onrender.com',
-        description: 'Development server',
+        description: 'production-server',
       },
     ],
     components: {
