@@ -12,6 +12,8 @@ export interface Booking {
     paymentMethod?: string;
     amount?: number;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    completedAt?: Date;
+    completedBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }

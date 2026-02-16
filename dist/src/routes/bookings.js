@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { createBooking, getBookingById, getBookingsByPatientId, getBookingsByDoctorId, getAllBookings, updateBooking, deleteBooking } from '../models/Booking.js';
+import { createCompletionLog, getDoctorCompletionStats, getCompletionLogsByDoctorId } from '../models/CompletionLog.js';
+import { incrementDoctorCompletedAppointments } from '../models/Doctor.js';
 import * as PatientModel from '../models/Patient.js';
 import * as ServiceModel from '../models/Service.js';
 import * as AvailabilityModel from '../models/Availability.js';
@@ -178,6 +180,23 @@ router.get('/', async (req, res) => {
         });
     }
 });
+// GET /api/bookings/all - Get all bookings (for admin)
+router.get('/all', async (req, res) => {
+    try {
+        const bookings = await getAllBookings();
+        return res.json({
+            success: true,
+            data: bookings,
+        });
+    }
+    catch (err) {
+        console.error('Fetch all bookings error:', err);
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+        });
+    }
+});
 // GET /api/bookings/:id - Get a specific booking
 router.get('/:id', async (req, res) => {
     try {
@@ -212,26 +231,73 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id', async (req, res) => {
     try {
         const id = req.params.id || '';
-        const { date, time, status } = req.body;
+        const { date, time, status, doctorId, notes, rating } = req.body;
         if (!id) {
             return res.status(400).json({
                 success: false,
                 error: 'id is required',
             });
         }
-        const updateData = {};
-        if (date)
-            updateData.date = date;
-        if (time)
-            updateData.time = time;
-        if (status)
-            updateData.status = status;
-        const booking = await updateBooking(id, updateData);
-        if (!booking) {
+        console.log('PATCH /bookings/:id - Attempting update:', { id, status, date, time, doctorId });
+        // Get the booking first to check current status
+        const currentBooking = await getBookingById(id);
+        if (!currentBooking) {
             return res.status(404).json({
                 success: false,
                 error: 'Booking not found',
             });
+        }
+        const updateData = {};
+        if (date !== undefined)
+            updateData.date = date;
+        if (time !== undefined)
+            updateData.time = time;
+        if (status !== undefined)
+            updateData.status = status;
+        // Handle completion tracking
+        if (status === 'completed' && currentBooking.status !== 'completed') {
+            // Mark when and by whom the appointment was completed
+            updateData.completedAt = new Date();
+            if (doctorId) {
+                updateData.completedBy = doctorId;
+            }
+            console.log('Booking marked as completed:', { id, doctorId });
+        }
+        const booking = await updateBooking(id, updateData);
+        if (!booking) {
+            console.error('Booking not found for ID:', id);
+            return res.status(404).json({
+                success: false,
+                error: 'Booking not found',
+            });
+        }
+        // If status changed to completed, create completion log and update doctor stats
+        if (status === 'completed' && currentBooking.status !== 'completed' && doctorId) {
+            try {
+                // Create completion log entry
+                const logPayload = {
+                    bookingId: id,
+                    doctorId,
+                    service: booking.service,
+                    appointmentDate: booking.date,
+                };
+                if (booking.patientId)
+                    logPayload.patientId = booking.patientId;
+                if (booking.patientName)
+                    logPayload.patientName = booking.patientName;
+                if (notes)
+                    logPayload.notes = notes;
+                if (rating)
+                    logPayload.rating = rating;
+                await createCompletionLog(logPayload);
+                // Update doctor's completion stats
+                await incrementDoctorCompletedAppointments(doctorId, rating);
+                console.log('Completion log created and doctor stats updated:', { id, doctorId });
+            }
+            catch (logErr) {
+                console.error('Error creating completion log:', logErr);
+                // Don't fail the request if logging fails, but log the error
+            }
         }
         return res.json({
             success: true,
@@ -277,22 +343,19 @@ router.delete('/:id', async (req, res) => {
         });
     }
 });
-// GET /api/bookings/all - Get all bookings (for admin)
-router.get('/all', async (req, res) => {
+export default router;
+// GET /api/bookings/completions/doctor/:doctorId - Get completion logs for a doctor
+router.get('/completions/doctor/:doctorId', async (req, res) => {
     try {
-        const bookings = await getAllBookings();
-        return res.json({
-            success: true,
-            data: bookings,
-        });
+        const doctorId = req.params.doctorId || '';
+        if (!doctorId)
+            return res.status(400).json({ success: false, error: 'doctorId required' });
+        const logs = await getCompletionLogsByDoctorId(doctorId);
+        return res.json({ success: true, data: logs });
     }
     catch (err) {
-        console.error('Fetch all bookings error:', err);
-        return res.status(500).json({
-            success: false,
-            error: err.message,
-        });
+        console.error('Fetch completion logs error:', err);
+        return res.status(500).json({ success: false, error: err.message });
     }
 });
-export default router;
 //# sourceMappingURL=bookings.js.map

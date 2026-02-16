@@ -10,6 +10,8 @@ export interface Doctor {
     qualification?: string;
     services?: string[];
     role: 'doctor';
+    completedAppointments?: number;
+    avgRating?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -22,4 +24,5 @@ export declare function deleteDoctor(id: string): Promise<boolean>;
 export declare function addServiceToDoctor(doctorId: string, serviceId: string): Promise<import("mongodb").WithId<Doctor> | null>;
 export declare function removeServiceFromDoctor(doctorId: string, serviceId: string): Promise<import("mongodb").WithId<Doctor> | null>;
 export declare function getServicesForDoctor(doctorId: string): Promise<string[]>;
+export declare function incrementDoctorCompletedAppointments(doctorId: string, rating?: number): Promise<any>;
 //# sourceMappingURL=Doctor.d.ts.map

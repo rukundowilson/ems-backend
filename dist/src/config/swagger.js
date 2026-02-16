@@ -9,8 +9,8 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:4000',
-                description: 'Development server',
+                url: 'https://ems-backend-2-jl41.onrender.com',
+                description: 'production-server',
             },
         ],
         components: {

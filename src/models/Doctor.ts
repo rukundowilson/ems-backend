@@ -12,6 +12,8 @@ export interface Doctor {
   qualification?: string;
   services?: string[];
   role: 'doctor';
+  completedAppointments?: number;  // Counter for completed appointments
+  avgRating?: number;              // Average rating from completed appointments
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -76,4 +78,31 @@ export async function removeServiceFromDoctor(doctorId: string, serviceId: strin
 export async function getServicesForDoctor(doctorId: string) {
   const doctor = await getDoctorById(doctorId);
   return doctor?.services || [];
+}
+
+export async function incrementDoctorCompletedAppointments(doctorId: string, rating?: number) {
+  const collection = await getDoctorsCollection();
+  
+  const updateData: any = {
+    $inc: { completedAppointments: 1 },
+    $set: { updatedAt: new Date() },
+  };
+
+  // Update avgRating if rating is provided
+  if (rating) {
+    const doctor = await getDoctorById(doctorId);
+    const currentCompleted = doctor?.completedAppointments || 0;
+    const currentAvgRating = doctor?.avgRating || 0;
+    
+    // Calculate new average: (old_avg * old_count + new_rating) / (old_count + 1)
+    const newAvgRating = (currentAvgRating * currentCompleted + rating) / (currentCompleted + 1);
+    updateData.$set.avgRating = Math.round(newAvgRating * 10) / 10;
+  }
+
+  const result = await collection.findOneAndUpdate(
+    { _id: new ObjectId(doctorId), role: 'doctor' },
+    updateData,
+    { returnDocument: 'after' }
+  ) as any;
+  return result?.value || null;
 }

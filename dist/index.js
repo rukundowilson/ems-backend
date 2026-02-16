@@ -31,7 +31,7 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });
 app.get("/", (req, res) => {
-    res.json({ message: "EMS Backend API", docs: "http://localhost:4000/api-docs" });
+    res.json({ message: "EMS Backend API", docs: "https://ems-backend-2-jl41.onrender.com" });
 });
 async function startServer() {
     try {

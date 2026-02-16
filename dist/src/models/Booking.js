@@ -61,9 +61,17 @@ export async function updateBooking(id, payload) {
     try {
         const objectId = new ObjectId(id);
         const result = await collection.findOneAndUpdate({ _id: objectId }, { $set: { ...payload, updatedAt: new Date() } }, { returnDocument: 'after' });
-        return result?.value || null;
+        // MongoDB driver v7 returns result with .value property
+        let updatedDoc = result?.value;
+        // Fallback: if findOneAndUpdate didn't return the document, fetch it explicitly
+        if (!updatedDoc) {
+            console.warn(`findOneAndUpdate returned no document for ID: ${id}, fetching separately`);
+            updatedDoc = await collection.findOne({ _id: objectId });
+        }
+        return updatedDoc || null;
     }
     catch (e) {
+        console.error('Error updating booking:', { id, error: String(e) });
         return null;
     }
 }

@@ -14,6 +14,8 @@ export interface Booking {
   paymentMethod?: string;
   amount?: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  completedAt?: Date;      // When the appointment was completed
+  completedBy?: string;    // Doctor ID who completed it
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -95,8 +97,19 @@ export async function updateBooking(id: string, payload: Partial<Booking>) {
       { $set: { ...payload, updatedAt: new Date() } },
       { returnDocument: 'after' }
     ) as any;
-    return result?.value || null;
+    
+    // MongoDB driver v7 returns result with .value property
+    let updatedDoc = result?.value;
+    
+    // Fallback: if findOneAndUpdate didn't return the document, fetch it explicitly
+    if (!updatedDoc) {
+      console.warn(`findOneAndUpdate returned no document for ID: ${id}, fetching separately`);
+      updatedDoc = await collection.findOne({ _id: objectId });
+    }
+    
+    return updatedDoc || null;
   } catch (e) {
+    console.error('Error updating booking:', { id, error: String(e) });
     return null;
   }
 }
