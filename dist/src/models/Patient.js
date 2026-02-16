@@ -8,16 +8,26 @@ export async function getPatientsCollection() {
 export async function createPatient(payload) {
     const collection = await getPatientsCollection();
     const doc = {
-        firebaseUid: payload.firebaseUid || undefined,
         email: payload.email,
         name: payload.name,
         phone: payload.phone,
-        passwordHash: payload.passwordHash || undefined,
         role: payload.role || 'patient',
-        services: payload.services || undefined,
+        status: payload.status || 'Active',
         createdAt: new Date(),
         updatedAt: new Date(),
     };
+    if (payload.firebaseUid)
+        doc.firebaseUid = payload.firebaseUid;
+    if (payload.passwordHash)
+        doc.passwordHash = payload.passwordHash;
+    if (payload.services && payload.services.length > 0)
+        doc.services = payload.services;
+    if (payload.specialization)
+        doc.specialization = payload.specialization;
+    if (payload.title)
+        doc.title = payload.title;
+    if (payload.availability)
+        doc.availability = payload.availability;
     const result = await collection.insertOne(doc);
     return { ...doc, _id: result.insertedId };
 }
