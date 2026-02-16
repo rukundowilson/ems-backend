@@ -159,6 +159,16 @@ router.get('/doctors', adminController.getAllDoctors);
  *                 type: string
  *               password:
  *                 type: string
+ *               role:
+ *                 type: string
+ *               specialization:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               availability:
+ *                 type: string
+ *               status:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Doctor created
@@ -166,6 +176,92 @@ router.get('/doctors', adminController.getAllDoctors);
  *         description: Email already exists
  */
 router.post('/doctors', doctorController.createDoctor);
+
+/**
+ * @swagger
+ * /api/admin/doctors/{id}:
+ *   get:
+ *     tags: [Admin - Doctors]
+ *     summary: Get doctor by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Doctor data
+ *       404:
+ *         description: Doctor not found
+ */
+router.get('/doctors/:id', doctorController.getDoctorById);
+
+/**
+ * @swagger
+ * /api/admin/doctors/{id}:
+ *   patch:
+ *     tags: [Admin - Doctors]
+ *     summary: Update doctor
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               specialization:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               availability:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Doctor updated
+ *       404:
+ *         description: Doctor not found
+ */
+router.patch('/doctors/:id', doctorController.updateDoctor);
+
+/**
+ * @swagger
+ * /api/admin/doctors/{id}:
+ *   delete:
+ *     tags: [Admin - Doctors]
+ *     summary: Delete doctor
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Doctor deleted
+ *       404:
+ *         description: Doctor not found
+ */
+router.delete('/doctors/:id', doctorController.deleteDoctor);
 
 /**
  * @swagger

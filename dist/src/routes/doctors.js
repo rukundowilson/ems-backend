@@ -6,6 +6,46 @@ const router = Router();
 /**
  * @swagger
  * /api/doctors:
+ *   post:
+ *     tags: [Doctors]
+ *     summary: Create a new doctor (Admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - name
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               specialization:
+ *                 type: string
+ *               experience:
+ *                 type: number
+ *               qualification:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Doctor created
+ *       403:
+ *         description: Admin access required
+ */
+router.post('/', verifyToken, requireAdmin, doctorController.createDoctor);
+/**
+ * @swagger
+ * /api/doctors:
  *   get:
  *     tags: [Doctors]
  *     summary: Get all doctors

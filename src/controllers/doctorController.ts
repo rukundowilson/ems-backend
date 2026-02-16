@@ -45,18 +45,20 @@ export async function createDoctor(req: Request | AuthRequest, res: Response) {
     }
 
     const hash = await bcrypt.hash(password, 10);
-    const created = await PatientModel.createPatient({
+    const patientData: any = {
       email,
       name: name || '',
       phone: phone || '',
       passwordHash: hash,
       role: 'doctor',
-      specialization: specialization || undefined,
-      title: title || undefined,
-      availability: availability || undefined,
-      status: status || 'Active',
-      services: serviceId ? [serviceId] : undefined,
-    });
+    };
+    if (specialization) patientData.specialization = specialization;
+    if (title) patientData.title = title;
+    if (availability) patientData.availability = availability;
+    if (status) patientData.status = status;
+    if (serviceId) patientData.services = [serviceId];
+    
+    const created = await PatientModel.createPatient(patientData);
 
     const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
     const token = jwt.sign(

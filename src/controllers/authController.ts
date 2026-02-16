@@ -15,7 +15,12 @@ export async function signup(req: Request, res: Response) {
     const hash = await bcrypt.hash(password, 10);
     // Default role to 'patient' if not provided
     const userRole = role || 'patient';
-    const created = await PatientModel.createPatient({ email, name, phone, passwordHash: hash, role: userRole, specialization, title, availability, status });
+    const patientData: any = { email, name, phone, passwordHash: hash, role: userRole };
+    if (specialization) patientData.specialization = specialization;
+    if (title) patientData.title = title;
+    if (availability) patientData.availability = availability;
+    if (status) patientData.status = status;
+    const created = await PatientModel.createPatient(patientData);
 
     const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
     const token = jwt.sign({ sub: created._id?.toString(), email: created.email, role: created.role }, secret, { expiresIn: '7d' });

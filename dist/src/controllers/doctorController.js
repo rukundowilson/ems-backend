@@ -1,14 +1,11 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import * as PatientModel from '../models/Patient.js';
 import * as DoctorModel from '../models/Doctor.js';
-const ADMIN_KEY = process.env.ADMIN_KEY || 'admin-secret-key-change-in-production';
+import * as ServiceModel from '../models/Service.js';
 export async function createDoctor(req, res) {
     try {
-        const { adminKey, email, name, phone, password, specialization, experience, qualification } = req.body;
-        if (!adminKey || adminKey !== ADMIN_KEY) {
-            return res.status(403).json({ success: false, error: 'Invalid admin key' });
-        }
+        const { email, name, phone, password, specialization, experience, qualification, title, availability, status } = req.body;
         if (!email || !password) {
             return res.status(400).json({ success: false, error: 'email and password required' });
         }
@@ -16,14 +13,38 @@ export async function createDoctor(req, res) {
         if (existing) {
             return res.status(409).json({ success: false, error: 'Doctor email already exists' });
         }
+        let serviceId;
+        if (specialization) {
+            let service = await ServiceModel.getServiceByTitle(specialization);
+            if (!service) {
+                const slug = specialization.toLowerCase().replace(/\s+/g, '-');
+                service = await ServiceModel.createService({
+                    title: specialization,
+                    slug,
+                    description: `${specialization} service`,
+                });
+            }
+            serviceId = service._id?.toString();
+        }
         const hash = await bcrypt.hash(password, 10);
-        const created = await PatientModel.createPatient({
+        const patientData = {
             email,
             name: name || '',
             phone: phone || '',
             passwordHash: hash,
             role: 'doctor',
-        });
+        };
+        if (specialization)
+            patientData.specialization = specialization;
+        if (title)
+            patientData.title = title;
+        if (availability)
+            patientData.availability = availability;
+        if (status)
+            patientData.status = status;
+        if (serviceId)
+            patientData.services = [serviceId];
+        const created = await PatientModel.createPatient(patientData);
         const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
         const token = jwt.sign({ sub: created._id?.toString(), email: created.email, role: 'doctor' }, secret, { expiresIn: '7d' });
         return res.status(201).json({ success: true, data: created, token });
@@ -51,14 +72,8 @@ export async function getDoctorById(req, res) {
         const doctor = await DoctorModel.getDoctorById(id);
         if (!doctor)
             return res.status(404).json({ success: false, error: 'Doctor not found' });
-        console.log('Doctor from DB:', JSON.stringify(doctor, null, 2));
         const { passwordHash, ...sanitized } = doctor;
-        const response = {
-            ...sanitized,
-            services: doctor.services || undefined,
-        };
-        console.log('Response:', JSON.stringify(response, null, 2));
-        return res.json({ success: true, data: response });
+        return res.json({ success: true, data: sanitized });
     }
     catch (err) {
         return res.status(500).json({ success: false, error: err.message });
@@ -69,7 +84,7 @@ export async function updateDoctor(req, res) {
         const id = req.params.id;
         if (!id)
             return res.status(400).json({ success: false, error: 'ID required' });
-        const { name, phone, email, specialization, experience, qualification, services } = req.body;
+        const { name, phone, email, specialization, experience, qualification, services, title, availability, status } = req.body;
         const updates = {};
         if (name !== undefined)
             updates.name = name;
@@ -77,14 +92,32 @@ export async function updateDoctor(req, res) {
             updates.phone = phone;
         if (email !== undefined)
             updates.email = email;
-        if (specialization !== undefined)
-            updates.specialization = specialization;
         if (experience !== undefined)
             updates.experience = experience;
         if (qualification !== undefined)
             updates.qualification = qualification;
-        if (services !== undefined)
+        if (title !== undefined)
+            updates.title = title;
+        if (availability !== undefined)
+            updates.availability = availability;
+        if (status !== undefined)
+            updates.status = status;
+        if (specialization !== undefined) {
+            updates.specialization = specialization;
+            let service = await ServiceModel.getServiceByTitle(specialization);
+            if (!service) {
+                const slug = specialization.toLowerCase().replace(/\s+/g, '-');
+                service = await ServiceModel.createService({
+                    title: specialization,
+                    slug,
+                    description: `${specialization} service`,
+                });
+            }
+            updates.services = [service._id?.toString()];
+        }
+        else if (services !== undefined) {
             updates.services = services;
+        }
         const updated = await DoctorModel.updateDoctor(id, updates);
         if (!updated)
             return res.status(404).json({ success: false, error: 'Doctor not found' });

@@ -5,6 +5,7 @@ export declare function getPatientById(req: AuthRequest, res: Response): Promise
 export declare function updatePatient(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function deletePatient(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function getAllDoctors(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
+export declare function createDoctor(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function getAllServices(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function getServiceById(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function createService(req: AuthRequest, res: Response): Promise<Response<any, Record<string, any>>>;
