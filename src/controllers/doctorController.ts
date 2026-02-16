@@ -5,6 +5,7 @@ import * as PatientModel from '../models/Patient.js';
 import * as DoctorModel from '../models/Doctor.js';
 import * as ServiceModel from '../models/Service.js';
 import type { AuthRequest } from '../middleware/auth.js';
+import { ObjectId } from 'mongodb';
 
 export async function createDoctor(req: Request | AuthRequest, res: Response) {
   try {
@@ -47,8 +48,8 @@ export async function createDoctor(req: Request | AuthRequest, res: Response) {
     const hash = await bcrypt.hash(password, 10);
     const created = await PatientModel.createPatient({
       email,
-      name: name || '',
-      phone: phone || '',
+      name: name || undefined,
+      phone: phone || undefined,
       passwordHash: hash,
       role: 'doctor',
       specialization: specialization || undefined,
@@ -85,7 +86,7 @@ export async function getAllDoctors(req: Request, res: Response) {
 export async function getDoctorById(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    if (!id) return res.status(400).json({ success: false, error: 'ID required' });
+    if (!id) return res.status(400).json({ success: false, error: 'id required' });
 
     const doctor = await DoctorModel.getDoctorById(id);
     if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
@@ -100,7 +101,7 @@ export async function getDoctorById(req: Request, res: Response) {
 export async function updateDoctor(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    if (!id) return res.status(400).json({ success: false, error: 'ID required' });
+    if (!id) return res.status(400).json({ success: false, error: 'id required' });
 
     const { name, phone, email, specialization, experience, qualification, services, title, availability, status } = req.body;
     const updates: any = {};
@@ -129,12 +130,12 @@ export async function updateDoctor(req: Request, res: Response) {
       updates.services = services;
     }
 
-    const updated = await DoctorModel.updateDoctor(id, updates);
-    if (!updated) return res.status(404).json({ success: false, error: 'Doctor not found' });
+    const doctor = await DoctorModel.updateDoctor(id, updates);
+    if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
 
-    const { passwordHash, ...sanitized } = updated;
-    return res.json({ success: true, data: sanitized });
+    return res.json({ success: true, data: { ...doctor, passwordHash: undefined } });
   } catch (err) {
+    console.error('Update doctor error', err);
     return res.status(500).json({ success: false, error: (err as Error).message });
   }
 }
@@ -142,13 +143,73 @@ export async function updateDoctor(req: Request, res: Response) {
 export async function deleteDoctor(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    if (!id) return res.status(400).json({ success: false, error: 'ID required' });
+    if (!id) return res.status(400).json({ success: false, error: 'id required' });
 
-    const deleted = await DoctorModel.deleteDoctor(id);
-    if (!deleted) return res.status(404).json({ success: false, error: 'Doctor not found' });
+    const result = await PatientModel.deletePatient(id);
+    if (!result) return res.status(404).json({ success: false, error: 'Doctor not found' });
 
-    return res.json({ success: true, message: 'Doctor deleted' });
+    return res.json({ success: true, message: 'Doctor deleted successfully' });
   } catch (err) {
+    console.error('Delete doctor error', err);
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function updateDoctorProfile(req: Request, res: Response) {
+  try {
+    const userId = (req as any).user?.sub;
+    if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const updates = req.body as Partial<{ name?: string; phone?: string; specialization?: string; experience?: number; qualification?: string }>;
+
+    const doctor = await DoctorModel.updateDoctor(userId, updates);
+    if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
+
+    return res.json({ success: true, data: { ...doctor, passwordHash: undefined } });
+  } catch (err) {
+    console.error('Update doctor error', err);
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function getDoctorBookings(req: Request, res: Response) {
+  try {
+    const userId = (req as any).user?.sub;
+    if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const BookingModel = await import('../models/Booking.js');
+    const bookings = await (await BookingModel.getBookingsCollection()).find({ doctorId: userId }).toArray();
+
+    return res.json({ success: true, data: bookings });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
+export async function markBookingCompleted(req: Request, res: Response) {
+  try {
+    const userId = (req as any).user?.sub;
+    const bookingId = req.params.id;
+
+    if (!userId || !bookingId) {
+      return res.status(400).json({ success: false, error: 'userId and bookingId required' });
+    }
+
+    const BookingModel = await import('../models/Booking.js');
+    const booking = await (await BookingModel.getBookingsCollection()).findOne({ _id: new ObjectId(bookingId), doctorId: userId });
+
+    if (!booking) {
+      return res.status(404).json({ success: false, error: 'Booking not found or not authorized' });
+    }
+
+    const updated = await BookingModel.updateBooking(bookingId, {
+      status: 'completed',
+      updatedAt: new Date(),
+    });
+
+    return res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('Mark completed error', err);
     return res.status(500).json({ success: false, error: (err as Error).message });
   }
 }

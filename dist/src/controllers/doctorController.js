@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as PatientModel from '../models/Patient.js';
 import * as DoctorModel from '../models/Doctor.js';
+import { ObjectId } from 'mongodb';
 const ADMIN_KEY = process.env.ADMIN_KEY || 'admin-secret-key-change-in-production';
 export async function createDoctor(req, res) {
     try {
@@ -19,8 +20,8 @@ export async function createDoctor(req, res) {
         const hash = await bcrypt.hash(password, 10);
         const created = await PatientModel.createPatient({
             email,
-            name: name || '',
-            phone: phone || '',
+            name: name || undefined,
+            phone: phone || undefined,
             passwordHash: hash,
             role: 'doctor',
         });
@@ -47,18 +48,11 @@ export async function getDoctorById(req, res) {
     try {
         const id = req.params.id;
         if (!id)
-            return res.status(400).json({ success: false, error: 'ID required' });
+            return res.status(400).json({ success: false, error: 'id required' });
         const doctor = await DoctorModel.getDoctorById(id);
         if (!doctor)
             return res.status(404).json({ success: false, error: 'Doctor not found' });
-        console.log('Doctor from DB:', JSON.stringify(doctor, null, 2));
-        const { passwordHash, ...sanitized } = doctor;
-        const response = {
-            ...sanitized,
-            services: doctor.services || undefined,
-        };
-        console.log('Response:', JSON.stringify(response, null, 2));
-        return res.json({ success: true, data: response });
+        return res.json({ success: true, data: { ...doctor, passwordHash: undefined } });
     }
     catch (err) {
         return res.status(500).json({ success: false, error: err.message });
@@ -68,30 +62,15 @@ export async function updateDoctor(req, res) {
     try {
         const id = req.params.id;
         if (!id)
-            return res.status(400).json({ success: false, error: 'ID required' });
-        const { name, phone, email, specialization, experience, qualification, services } = req.body;
-        const updates = {};
-        if (name !== undefined)
-            updates.name = name;
-        if (phone !== undefined)
-            updates.phone = phone;
-        if (email !== undefined)
-            updates.email = email;
-        if (specialization !== undefined)
-            updates.specialization = specialization;
-        if (experience !== undefined)
-            updates.experience = experience;
-        if (qualification !== undefined)
-            updates.qualification = qualification;
-        if (services !== undefined)
-            updates.services = services;
-        const updated = await DoctorModel.updateDoctor(id, updates);
-        if (!updated)
+            return res.status(400).json({ success: false, error: 'id required' });
+        const updates = req.body;
+        const doctor = await DoctorModel.updateDoctor(id, updates);
+        if (!doctor)
             return res.status(404).json({ success: false, error: 'Doctor not found' });
-        const { passwordHash, ...sanitized } = updated;
-        return res.json({ success: true, data: sanitized });
+        return res.json({ success: true, data: { ...doctor, passwordHash: undefined } });
     }
     catch (err) {
+        console.error('Update doctor error', err);
         return res.status(500).json({ success: false, error: err.message });
     }
 }
@@ -99,13 +78,66 @@ export async function deleteDoctor(req, res) {
     try {
         const id = req.params.id;
         if (!id)
-            return res.status(400).json({ success: false, error: 'ID required' });
-        const deleted = await DoctorModel.deleteDoctor(id);
-        if (!deleted)
+            return res.status(400).json({ success: false, error: 'id required' });
+        const result = await PatientModel.deletePatient(id);
+        if (!result)
             return res.status(404).json({ success: false, error: 'Doctor not found' });
-        return res.json({ success: true, message: 'Doctor deleted' });
+        return res.json({ success: true, message: 'Doctor deleted successfully' });
     }
     catch (err) {
+        console.error('Delete doctor error', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+}
+export async function updateDoctorProfile(req, res) {
+    try {
+        const userId = req.user?.sub;
+        if (!userId)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const updates = req.body;
+        const doctor = await DoctorModel.updateDoctor(userId, updates);
+        if (!doctor)
+            return res.status(404).json({ success: false, error: 'Doctor not found' });
+        return res.json({ success: true, data: { ...doctor, passwordHash: undefined } });
+    }
+    catch (err) {
+        console.error('Update doctor error', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+}
+export async function getDoctorBookings(req, res) {
+    try {
+        const userId = req.user?.sub;
+        if (!userId)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const BookingModel = await import('../models/Booking.js');
+        const bookings = await (await BookingModel.getBookingsCollection()).find({ doctorId: userId }).toArray();
+        return res.json({ success: true, data: bookings });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+}
+export async function markBookingCompleted(req, res) {
+    try {
+        const userId = req.user?.sub;
+        const bookingId = req.params.id;
+        if (!userId || !bookingId) {
+            return res.status(400).json({ success: false, error: 'userId and bookingId required' });
+        }
+        const BookingModel = await import('../models/Booking.js');
+        const booking = await (await BookingModel.getBookingsCollection()).findOne({ _id: new ObjectId(bookingId), doctorId: userId });
+        if (!booking) {
+            return res.status(404).json({ success: false, error: 'Booking not found or not authorized' });
+        }
+        const updated = await BookingModel.updateBooking(bookingId, {
+            status: 'completed',
+            updatedAt: new Date(),
+        });
+        return res.json({ success: true, data: updated });
+    }
+    catch (err) {
+        console.error('Mark completed error', err);
         return res.status(500).json({ success: false, error: err.message });
     }
 }

@@ -179,6 +179,23 @@ router.get('/', async (req, res) => {
     }
 });
 // GET /api/bookings/:id - Get a specific booking
+// GET /api/bookings/completions/doctor/:doctorId - Completed bookings for a doctor
+router.get('/completions/doctor/:doctorId', async (req, res) => {
+    try {
+        const doctorId = req.params.doctorId || '';
+        if (!doctorId) {
+            return res.status(400).json({ success: false, error: 'doctorId required' });
+        }
+        // use existing model helper
+        const bookings = await getBookingsByDoctorId(doctorId);
+        const completions = (bookings || []).filter((b) => b.status === 'completed');
+        return res.json({ success: true, data: completions });
+    }
+    catch (err) {
+        console.error('Fetch completions error:', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
 router.get('/:id', async (req, res) => {
     try {
         const id = req.params.id || '';
