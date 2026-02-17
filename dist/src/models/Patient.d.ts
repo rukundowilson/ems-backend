@@ -8,6 +8,10 @@ export interface Patient {
     passwordHash?: string | undefined;
     role?: 'patient' | 'doctor' | 'admin';
     services?: string[];
+    specialization?: string;
+    title?: string;
+    availability?: string;
+    status?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -20,6 +24,10 @@ export declare function createPatient(payload: {
     passwordHash?: string | undefined;
     role?: 'patient' | 'doctor' | 'admin';
     services?: string[];
+    specialization?: string;
+    title?: string;
+    availability?: string;
+    status?: string;
 }): Promise<{
     _id: ObjectId;
     email?: string | undefined;
@@ -29,6 +37,10 @@ export declare function createPatient(payload: {
     passwordHash?: string | undefined;
     role?: "patient" | "doctor" | "admin";
     services?: string[];
+    specialization?: string;
+    title?: string;
+    availability?: string;
+    status?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }>;

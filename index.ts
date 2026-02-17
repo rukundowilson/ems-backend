@@ -11,6 +11,7 @@ import serviceRoutes from "./src/routes/services.js";
 import bookingsRoutes from "./src/routes/bookings.js";
 import adminRoutes from "./src/routes/admin.js";
 import doctorRoutes from "./src/routes/doctors.js";
+import patientRoutes from "./src/routes/patients.js";
 
 const app = express();
 const PORT = 4000;
@@ -32,6 +33,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/patients", patientRoutes);
 
 // Health check
 app.get("/health", (req, res) => {
@@ -39,7 +41,7 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.json({ message: "EMS Backend API", docs: "http://localhost:4000/api-docs" });
+  res.json({ message: "EMS Backend API", docs: "https://ems-backend-2-jl41.onrender.com" });
 });
 
 async function startServer() {

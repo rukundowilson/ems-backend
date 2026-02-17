@@ -5,77 +5,41 @@ export async function getBookingsCollection() {
     const db = getDb();
     return db.collection(COLLECTION_NAME);
 }
-export async function createBooking(payload) {
+export async function getAllBookings() {
     const collection = await getBookingsCollection();
-    const doc = {
-        service: payload.service,
-        date: payload.date,
-        time: payload.time,
-        status: 'confirmed',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    };
-    // Only add optional fields if they exist
-    if (payload.doctorId !== undefined)
-        doc.doctorId = payload.doctorId;
-    if (payload.patientId !== undefined)
-        doc.patientId = payload.patientId;
-    if (payload.patientEmail !== undefined)
-        doc.patientEmail = payload.patientEmail;
-    if (payload.patientName !== undefined)
-        doc.patientName = payload.patientName;
-    if (payload.patientPhone !== undefined)
-        doc.patientPhone = payload.patientPhone;
-    if (payload.paymentMethod !== undefined)
-        doc.paymentMethod = payload.paymentMethod;
-    if (payload.amount !== undefined)
-        doc.amount = payload.amount;
-    const result = await collection.insertOne(doc);
-    return { ...doc, _id: result.insertedId };
+    return collection.find({}).sort({ createdAt: -1 }).toArray();
 }
 export async function getBookingById(id) {
     const collection = await getBookingsCollection();
-    try {
-        const objectId = new ObjectId(id);
-        return collection.findOne({ _id: objectId });
-    }
-    catch (e) {
-        // If id is not a valid ObjectId, return null
-        return null;
-    }
+    return collection.findOne({ _id: new ObjectId(id) });
 }
-export async function getBookingsByPatientId(patientId) {
+export async function getBookingsByDoctor(doctorId) {
     const collection = await getBookingsCollection();
-    return collection.find({ patientId }).toArray();
+    return collection.find({ doctorId }).sort({ createdAt: -1 }).toArray();
 }
-export async function getBookingsByDoctorId(doctorId) {
+export async function getBookingsByPatient(patientId) {
     const collection = await getBookingsCollection();
-    return collection.find({ doctorId }).toArray();
+    return collection.find({ patientId }).sort({ createdAt: -1 }).toArray();
 }
-export async function getAllBookings() {
+export async function createBooking(booking) {
     const collection = await getBookingsCollection();
-    return collection.find({}).toArray();
+    const doc = {
+        ...booking,
+        status: booking.status || 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    };
+    const result = await collection.insertOne(doc);
+    return { ...doc, _id: result.insertedId };
 }
-export async function updateBooking(id, payload) {
+export async function updateBooking(id, updates) {
     const collection = await getBookingsCollection();
-    try {
-        const objectId = new ObjectId(id);
-        const result = await collection.findOneAndUpdate({ _id: objectId }, { $set: { ...payload, updatedAt: new Date() } }, { returnDocument: 'after' });
-        return result?.value || null;
-    }
-    catch (e) {
-        return null;
-    }
+    const result = await collection.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: { ...updates, updatedAt: new Date() } }, { returnDocument: 'after' });
+    return result || null;
 }
 export async function deleteBooking(id) {
     const collection = await getBookingsCollection();
-    try {
-        const objectId = new ObjectId(id);
-        const result = await collection.deleteOne({ _id: objectId });
-        return result.deletedCount > 0;
-    }
-    catch (e) {
-        return false;
-    }
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
 }
 //# sourceMappingURL=Booking.js.map

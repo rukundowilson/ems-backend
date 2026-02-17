@@ -77,6 +77,36 @@ export async function getAllDoctors(req: AuthRequest, res: Response) {
   }
 }
 
+export async function createDoctor(req: AuthRequest, res: Response) {
+  try {
+    const { name, email, phone, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: 'email and password required' });
+    }
+
+    const existing = await PatientModel.getPatientByEmail(email);
+    if (existing) {
+      return res.status(409).json({ success: false, error: 'Email already exists' });
+    }
+
+    const bcrypt = await import('bcrypt');
+    const hash = await bcrypt.default.hash(password, 10);
+    
+    const doctor = await PatientModel.createPatient({
+      email,
+      name,
+      phone,
+      passwordHash: hash,
+      role: 'doctor',
+    });
+
+    const { passwordHash, ...sanitized } = doctor;
+    return res.status(201).json({ success: true, data: sanitized });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+}
+
 // ========== SERVICE MANAGEMENT ==========
 
 export async function getAllServices(req: AuthRequest, res: Response) {

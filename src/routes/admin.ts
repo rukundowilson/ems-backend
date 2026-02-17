@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import * as adminController from '../controllers/adminController.js';
+import * as doctorController from '../controllers/doctorController.js';
 
 const router = Router();
 
@@ -131,6 +132,150 @@ router.delete('/patients/:id', adminController.deletePatient);
  *         description: List of doctors
  */
 router.get('/doctors', adminController.getAllDoctors);
+
+/**
+ * @swagger
+ * /api/admin/doctors:
+ *   post:
+ *     tags: [Admin - Doctors]
+ *     summary: Create a new doctor
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               specialization:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               availability:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Doctor created
+ *       409:
+ *         description: Email already exists
+ */
+router.post('/doctors', doctorController.createDoctor);
+
+/**
+ * @swagger
+ * /api/admin/doctors/{id}:
+ *   get:
+ *     tags: [Admin - Doctors]
+ *     summary: Get doctor by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Doctor data
+ *       404:
+ *         description: Doctor not found
+ */
+router.get('/doctors/:id', doctorController.getDoctorById);
+
+/**
+ * @swagger
+ * /api/admin/doctors/{id}:
+ *   patch:
+ *     tags: [Admin - Doctors]
+ *     summary: Update doctor
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               specialization:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               availability:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Doctor updated
+ *       404:
+ *         description: Doctor not found
+ */
+router.patch('/doctors/:id', doctorController.updateDoctor);
+
+/**
+ * @swagger
+ * /api/admin/doctors/{id}:
+ *   delete:
+ *     tags: [Admin - Doctors]
+ *     summary: Delete doctor
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Doctor deleted
+ *       404:
+ *         description: Doctor not found
+ */
+router.delete('/doctors/:id', doctorController.deleteDoctor);
+
+/**
+ * @swagger
+ * /api/admin/bookings:
+ *   get:
+ *     tags: [Admin - Bookings]
+ *     summary: Get all bookings
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of bookings
+ */
+router.get('/bookings', adminController.getAllBookings);
 
 /**
  * @swagger
@@ -267,7 +412,7 @@ router.delete('/services/:id', adminController.deleteService);
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List of all bookings
+ *         description: List of bookings
  */
 router.get('/bookings', adminController.getAllBookings);
 
