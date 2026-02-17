@@ -9,14 +9,14 @@ const router = Router();
  * /api/bookings:
  *   get:
  *     tags: [Bookings]
- *     summary: Get all bookings (Admin only)
+ *     summary: Get all bookings
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of bookings
  */
-router.get('/', verifyToken, requireAdmin, bookingController.getAllBookings);
+router.get('/', verifyToken, bookingController.getAllBookings);
 
 /**
  * @swagger
@@ -183,7 +183,7 @@ router.patch('/:id', verifyToken, bookingController.updateBooking);
  * /api/bookings/{id}:
  *   delete:
  *     tags: [Bookings]
- *     summary: Delete booking (Admin only)
+ *     summary: Delete booking by ID
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -198,6 +198,6 @@ router.patch('/:id', verifyToken, bookingController.updateBooking);
  *       404:
  *         description: Booking not found
  */
-router.delete('/:id', verifyToken, requireAdmin, bookingController.deleteBooking);
+router.delete('/:id', verifyToken,  bookingController.deleteBooking);
 
 export default router;
